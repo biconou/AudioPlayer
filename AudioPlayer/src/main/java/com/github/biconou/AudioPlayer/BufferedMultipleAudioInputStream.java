@@ -8,7 +8,7 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 
 
-public class BufferedAudioInputStream {
+public class BufferedMultipleAudioInputStream {
 
 	private static final int MAX_BUFFERS = 30;
 
@@ -18,57 +18,78 @@ public class BufferedAudioInputStream {
 	}
 	
 	private static final Buffer lastBuffer = new Buffer();
+	private static final Buffer nextStreamBuffer = new Buffer();
 
-	private int currentStreamIndex = -1;
+	//private int currentStreamIndex = -1;
 	private AudioInputStream currentStream = null;
-	private AudioInputStream[] streams = null;
+	private PlayList playList = null;
 	private int bufferSize;
 	//List<byte[]> buffers = null;
-	private Vector<BufferedAudioInputStream.Buffer> buffers = null;
+	private Vector<BufferedMultipleAudioInputStream.Buffer> buffers = null;
 
 	private Thread fillThread = null;
+	
+	Boolean mustStop = Boolean.FALSE;
 
-	Integer lock = new Integer(0);
 
 	/**
 	 * 
+	 * @param fromStream
 	 * @return
 	 */
-	AudioInputStream getNextAudioInputStream() {
-		currentStreamIndex ++;
-		currentStream = null;
-		
-		
-		AudioInputStream next = null;
-		
-		try {
-			next = streams[currentStreamIndex];
-		} catch (ArrayIndexOutOfBoundsException e) {
-			return null;
-		}
-
-		System.out.println("Next audio stream : "+currentStreamIndex);
-
-        AudioFormat audioFormat = next.getFormat();
+	private AudioInputStream convertAudioInputStream(AudioInputStream fromStream) {
+        AudioFormat audioFormat = fromStream.getFormat();
         // Convert compressed audio data to uncompressed PCM format.
         if (audioFormat.getEncoding() != AudioFormat.Encoding.PCM_SIGNED) {
             // if ((audioFormat.getEncoding() != AudioFormat.Encoding.PCM) ||
             //     (audioFormat.getEncoding() == AudioFormat.Encoding.ALAW) || 
             //     (audioFormat.getEncoding() == AudioFormat.Encoding.MP3)) {
-            AudioFormat newFormat = new AudioFormat(
-                    AudioFormat.Encoding.PCM_SIGNED, 
-                    audioFormat.getSampleRate(),
-                    16,
-                    audioFormat.getChannels(),
-                    audioFormat.getChannels() * 2,
-                    audioFormat.getSampleRate(),
-                    false);
+
+        	int targetSampleSizeInBits = audioFormat.getSampleSizeInBits();
+    		if (targetSampleSizeInBits == -1) {
+    			targetSampleSizeInBits = 16;
+    		}
+    		
+    		
+    		int targetFrameSize = 4;
+    		if (targetSampleSizeInBits == 24) {
+    			targetFrameSize = 6;
+    		}
+
+    		AudioFormat newFormat = new AudioFormat(
+    				AudioFormat.Encoding.PCM_SIGNED, 
+    				audioFormat.getSampleRate(),
+    				targetSampleSizeInBits,
+    				audioFormat.getChannels(),
+    				targetFrameSize,
+    				audioFormat.getSampleRate(),
+    				false);
+    		
             System.out.println("Converting audio format to " + newFormat);
-            AudioInputStream newStream = AudioSystem.getAudioInputStream(newFormat, next);
-            return newStream;
+            
+            return  AudioSystem.getAudioInputStream(newFormat, fromStream);
+            
         } else {
-        	return next;
+        	return fromStream;
         }
+	}
+	
+	
+	/**
+	 * 
+	 * @return
+	 */
+	private void nextAudioInputStream() {
+		//currentStreamIndex ++;
+		//currentStream = null;
+		
+		AudioInputStream next = playList.getNextAudioStream();
+		
+		if (next == null) {
+			currentStream = null;
+		} else {
+	            currentStream = convertAudioInputStream(next);
+		}
 	}
 	
 	/**
@@ -76,9 +97,6 @@ public class BufferedAudioInputStream {
 	 * @return
 	 */
 	AudioInputStream getCurrentStream() {
-		if (currentStream == null) {
-			currentStream = getNextAudioInputStream();
-		}
 		return currentStream;
 	}
 
@@ -87,13 +105,15 @@ public class BufferedAudioInputStream {
 	 * @param stream
 	 * @throws IOException 
 	 */
-	public BufferedAudioInputStream(AudioInputStream[] streams,int bufferSize) throws IOException {
+	public BufferedMultipleAudioInputStream(PlayList playList,int bufferSize) throws IOException {
 		
-		this.streams = streams;
+		this.playList = playList;
 		this.bufferSize = bufferSize;
 
 		//buffers = new ArrayList<byte[]>();
-		buffers = new Vector<BufferedAudioInputStream.Buffer>();
+		buffers = new Vector<BufferedMultipleAudioInputStream.Buffer>();
+		
+		currentStream = convertAudioInputStream(playList.getFirstAudioStream());
 
 		//first read
 		boolean goOn = true;
@@ -138,12 +158,20 @@ public class BufferedAudioInputStream {
 			boolean goOn = true;
 			try {
 				while (goOn) {
-
-					//System.out.println("try fill");
-					if (buffers.size() < MAX_BUFFERS) {
-					Buffer b = loadOneBuffer();
-					goOn = b != lastBuffer;
-					} 
+					
+					synchronized (mustStop) {
+						if (mustStop.equals(Boolean.TRUE)) {
+							buffers.clear();
+							buffers = null;
+							break;
+						} else {
+							if (buffers.size() < MAX_BUFFERS) {
+								Buffer b = loadOneBuffer();
+								goOn = b != lastBuffer;
+							} 
+						}
+					}
+					
 				}				
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
@@ -168,6 +196,9 @@ public class BufferedAudioInputStream {
 			if (removedBuffer == lastBuffer) {
 				return -1;
 			}
+			if (removedBuffer == nextStreamBuffer) {
+				return -2;
+			}
 			System.arraycopy(removedBuffer.bytes,0, returnedBytes, 0, removedBuffer.nbBytes);
 			return removedBuffer.nbBytes;
 		} else {
@@ -175,6 +206,19 @@ public class BufferedAudioInputStream {
 		}
 	}
 
+	/**
+	 * 
+	 */
+	public void stopFillBuffers() {
+		synchronized (mustStop) {
+			mustStop = Boolean.TRUE;
+		}
+//		while (buffers != null) {
+//			// Do nothing but wait until buffers is null.
+//		}
+		fillThread.interrupt();
+		fillThread = null;
+	}
 	
 	/**
 	 * 
@@ -191,14 +235,15 @@ public class BufferedAudioInputStream {
 		
 		int nBytesRead = getCurrentStream().read(b, 0, getBufferSize());
 		if (nBytesRead == -1) {
-			currentStream = null;
+			buffers.add(nextStreamBuffer);
+			nextAudioInputStream();
 			return loadOneBuffer();
 		}
 		Buffer newBuffer = new Buffer();
 		newBuffer.bytes = b;
 		newBuffer.nbBytes = nBytesRead;					
 		buffers.add(newBuffer);
-		//System.out.println("fill "+buffers.size());
+		//System.out.println("fill "+b.length);
 		return newBuffer;
 	}
 

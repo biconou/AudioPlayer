@@ -29,6 +29,7 @@
       <version>3.8.1</version>
       <scope>test</scope>
     </dependency>
+ 
     <dependency>
     	<groupId>org.kc7bfi</groupId>
     	<artifactId>jflac</artifactId>
@@ -49,5 +50,7 @@
     	<artifactId>tritonus_share</artifactId>
     	<version>BICONOU</version>
     </dependency>
+    
+     
   </dependencies>
 </project>

@@ -1,5 +1,7 @@
 package com.github.biconou.AudioPlayer;
 
+
+
 /* libFLAC - Free Lossless Audio Codec library
  * Copyright (C) 2000,2001,2002,2003  Josh Coalson
  *
@@ -26,6 +28,7 @@ import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
+import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 
@@ -39,28 +42,22 @@ import javax.sound.sampled.SourceDataLine;
  * @author Dan Becker, beckerdo@io.com
  */
 public class SndPlayer {
-	
-	
-    //ms.playSound("Z:/Ma musique/robert de vis�e - 1995 - lute, guitar & theorbo (toyohiko satoh)/22 - Passaquaille.flac");
-	//ms.playSound("Z:/Ma musique/Henry Dumont - Motets � la chapelle de Louis XIV - FNAC MUSIC 592054/03 - Les Pages de la Chapelle-Muasica Aeterna-Olivier Schneebeli - Benedic Anima mea.wav");
-	//ms.playSound("D:/subsonic/TestAudio/wav/t1.wav");
-	//ms.playSound("D:/subsonic/TestAudio/wav/t2.wav");
-
     
     /** 
      * Plays audio from given file names.
      * @param args Command line parameters
      */
     public static void main(String [] args) {
-    	
-    	String[] filesToPlay = new String[3];
-    	filesToPlay[0] = "D:/subsonic/TestAudio/wav/t1.wav";
-    	filesToPlay[1] = "Z:/Ma musique/AC-DC/Back in Black/07 You Shook Me All Night Long.mp3";
-    	filesToPlay[2] = "Z:/Ma musique/3 . Musique classique/3.9 classement par p�riodes/3.94 Epoque baroque/Rameau/Rameau - Hippolyte Et Aricie - Marc Minkowski - Les Musiciens Du Louvre/096 - Act 5  Vol Des Z�phirs.flac";
-    	
-    	
+        // Check for given sound file names.
+        if (args.length < 1) {
+            System.out.println("SndPlayer usage:");
+            System.out.println("\tjava SndPlayer <sound file names>*");
+            System.exit(0);
+        }
+        
         // Process arguments.
-        playAudioFile(filesToPlay);
+        for (int i = 0; i < args.length; i++) 
+            playAudioFile(args[ i ]);
         
         // Must exit explicitly since audio creates non-daemon threads.
         System.exit(0);
@@ -70,50 +67,48 @@ public class SndPlayer {
      * Play audio from the given file name. 
      * @param fileName  The file to play
      */
-    public static void playAudioFile(String[] fileName) {
-    	
-    	AudioInputStream[] streams = new AudioInputStream[fileName.length];
-
-    	for (int i = 0; i < fileName.length; i++) {
-        	
-    		File soundFile = new File(fileName[i]);
-            
-            try {
-                // Create a stream from the given file.
-                // Throws IOException or UnsupportedAudioFileException
-            	
-                streams[i] = AudioSystem.getAudioInputStream(soundFile);
-                // AudioSystem.getAudioInputStream(inputStream); // alternate audio stream from inputstream
-            } catch (Exception e) {
-                System.out.println("Problem with file " + fileName + ":");
-                e.printStackTrace();
-            }            
-		}
-    	
-        playAudioStream(streams);
+    public static void playAudioFile(String fileName) {
+        File soundFile = new File(fileName);
+        
+        try {
+            // Create a stream from the given file.
+            // Throws IOException or UnsupportedAudioFileException
+            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(soundFile);
+            // AudioSystem.getAudioInputStream(inputStream); // alternate audio stream from inputstream
+            playAudioStream(audioInputStream);
+        } catch (Exception e) {
+            System.out.println("Problem with file " + fileName + ":");
+            e.printStackTrace();
+        }
     } // playAudioFile
     
     /** 
      * Plays audio from the given audio input stream. 
      * @param audioInputStream  The audio stream to play
      */
-    public static void playAudioStream(AudioInputStream[] audioInputStream) {
-    	
-    	AudioInputStream firstStream = audioInputStream[0];
+    public static void playAudioStream(AudioInputStream audioInputStream) {
         // Audio format provides information like sample rate, size, channels.
-        AudioFormat audioFormat = firstStream.getFormat();
+        AudioFormat audioFormat = audioInputStream.getFormat();
         System.out.println("Play input audio format=" + audioFormat);
         
-        AudioFormat newFormat = new AudioFormat(
-                AudioFormat.Encoding.PCM_SIGNED, 
-                audioFormat.getSampleRate(),
-                16,
-                audioFormat.getChannels(),
-                audioFormat.getChannels() * 2,
-                audioFormat.getSampleRate(),
-                false);
-
-        audioFormat = newFormat;
+        // Convert compressed audio data to uncompressed PCM format.
+        if (audioFormat.getEncoding() != AudioFormat.Encoding.PCM_SIGNED) {
+            // if ((audioFormat.getEncoding() != AudioFormat.Encoding.PCM) ||
+            //     (audioFormat.getEncoding() == AudioFormat.Encoding.ALAW) || 
+            //     (audioFormat.getEncoding() == AudioFormat.Encoding.MP3)) {
+            AudioFormat newFormat = new AudioFormat(
+                    AudioFormat.Encoding.PCM_SIGNED, 
+                    audioFormat.getSampleRate(),
+                    audioFormat.getSampleSizeInBits(),
+                    audioFormat.getChannels(),
+                    audioFormat.getChannels() * 2,
+                    audioFormat.getSampleRate(),
+                    false);
+            System.out.println("Converting audio format to " + newFormat);
+            AudioInputStream newStream = AudioSystem.getAudioInputStream(newFormat, audioInputStream);
+            audioFormat = newFormat;
+            audioInputStream = newStream;
+        }
         
         // Open a data line to play our type of sampled audio.
         // Use SourceDataLine for play and TargetDataLine for record.
@@ -140,36 +135,8 @@ public class SndPlayer {
             // Allows the line to move data in and out to a port.
             dataLine.start();
             
-            
             // Create a buffer for moving data from the audio stream to the line.   
             int bufferSize = (int) audioFormat.getSampleRate() * audioFormat.getFrameSize();
-            
-            // CODE MODIFIE
-            try {
-				BufferedAudioInputStream bufferedStream = new BufferedAudioInputStream(audioInputStream,bufferSize);
-				
-		        int nBytesRead = 0;
-		        byte[] abData = new byte[bufferSize];
-
-		        while (nBytesRead >= 0) {
-		            try {
-		            	nBytesRead = bufferedStream.read(abData);
-		            } catch (Exception e) {
-		                e.printStackTrace();
-		            }
-		            if (nBytesRead > 0) {
-		                @SuppressWarnings("unused")
-		                int nBytesWritten = dataLine.write(abData, 0, nBytesRead);
-		            }
-		        }
-
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-            
-            
-            /*
             byte [] buffer = new byte[ bufferSize ];
             
             // Move the data until done or there is an error.
@@ -187,7 +154,6 @@ public class SndPlayer {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            */
             
             System.out.println("Play.playAudioStream draining line.");
             // Continues data line I/O until its buffer is drained.
@@ -201,3 +167,4 @@ public class SndPlayer {
         }
     } // playAudioStream
 } // Play
+
