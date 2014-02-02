@@ -6,8 +6,14 @@ public interface PlayList {
 	
 	AudioInputStream getFirstAudioStream();
 	
+	String getFirstAudioFileName();
+	
 	AudioInputStream getNextAudioStream();
 	
+	String getNextAudioFileName();
+	
 	AudioInputStream getCurrentAudioStream();
+	
+	String getCurrentAudioFileName();
 
 }
