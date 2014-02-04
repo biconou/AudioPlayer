@@ -33,6 +33,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+
 import javax.sound.sampled.SourceDataLine;
 
 
@@ -76,16 +77,20 @@ public class MPlayerPlayer implements Player {
 	private String tmpDir = null;
 	List<String> tmpFiles = new ArrayList<String>();
 	private Process mplayerProcess;
-	List<String> mPlayerStandardOutputBuffer = null;
-	
+
+
+	// Mplayer stdout treatment
+	List<String> mPlayerStandardOutputBuffer = null;	
 	private Thread tTreatOutputMplayer = null;
 	private Thread tReadOutputMplayer = null; 
+
 	
+	String nowPlaying = null;
 
 
 	public MPlayerPlayer() throws IOException {
 		mPlayerCommand = System.getProperty("com.github.biconou.AudioPlayer.MPlayerPlayer.command");
-		
+
 		tmpDir = System.getProperty("com.github.biconou.AudioPlayer.MPlayerPlayer.tmpDir");
 
 		init();
@@ -112,7 +117,7 @@ public class MPlayerPlayer implements Player {
 		if (mPlayerCommand == null) {
 			throw new IllegalStateException("Undefined MPlayer command.");
 		}
-		
+
 		if (tmpDir == null) {
 			throw new IllegalStateException("Undefined tmpDir.");
 		}
@@ -121,56 +126,74 @@ public class MPlayerPlayer implements Player {
 			throw new IllegalStateException("tmpDir "+tmpDir+" does not exists or is not a directory");
 		}
 
-		ProcessBuilder pb = new ProcessBuilder(mPlayerCommand,"-slave","-idle","--gapless-audio","-v");
+		//ProcessBuilder pb = new ProcessBuilder(mPlayerCommand,"-slave","-idle","--gapless-audio","-v");
+		ProcessBuilder pb = new ProcessBuilder(mPlayerCommand,"-slave","-idle","--gapless-audio");
 		mplayerProcess = pb.start();
 		OutputStream MplayerOStream = mplayerProcess.getOutputStream();
 		cmdStream = new BufferedOutputStream(MplayerOStream);
-		
+
 
 		final  BufferedReader MplayerIStream = new BufferedReader(new InputStreamReader(mplayerProcess.getInputStream()));
 		final  BufferedReader MplayerErrorStream = new BufferedReader(new InputStreamReader(mplayerProcess.getErrorStream()));
 
 
 		mPlayerStandardOutputBuffer = new ArrayList<String>();
+
 		
 		// Tread MPlayer standard output
 		tTreatOutputMplayer = new Thread(new Runnable() {
-      
-      @Override
-      public void run() {
-        while (mPlayerStandardOutputBuffer != null) {
-          if (mPlayerStandardOutputBuffer.size() > 0) {
-            String readLine = mPlayerStandardOutputBuffer.remove(0);
-            if (readLine != null) {
-              if (readLine.startsWith("EOF code: 1")) {
-                notifyNextStream();
-              }
-            }
-          }
-        }
-      }
-    });
-		
+
+			public void run() {
+				while (mPlayerStandardOutputBuffer != null) {
+					if (mPlayerStandardOutputBuffer.size() > 0) {
+						String readLine = mPlayerStandardOutputBuffer.remove(0);
+						if (readLine != null) {
+							if (readLine.startsWith("Playing")) {
+								try {
+									Thread.sleep(500);
+								} catch (InterruptedException e) {
+									// Nothing to do
+								}
+								String wasPlaying = nowPlaying;
+								nowPlaying = readLine;
+								if (wasPlaying != null) {
+									System.out.println("next");
+									notifyNextStream();
+								}
+							}
+						}
+					}
+					
+				}
+			}
+		});
+
+		tTreatOutputMplayer.setPriority(Thread.MIN_PRIORITY);
 		tTreatOutputMplayer.start();
-		
-		
+
+
 		// Read MPlayer standard output
 		tReadOutputMplayer = new Thread(new Runnable() {
 
 			public void run() {
-			  
+
 				String readLine;
 				try {
 					readLine = MplayerIStream.readLine();
 					while (MplayerIStream != null && readLine != null) {	            	  
 						//System.out.println(readLine);
-					  if (mPlayerStandardOutputBuffer != null) {
-					    mPlayerStandardOutputBuffer.add(readLine);
-					  }
+						if (mPlayerStandardOutputBuffer != null) {
+							//mPlayerStandardOutputBuffer.add(readLine);
+						}
+						if (readLine.startsWith("Playing")) {
+							if (mPlayerStandardOutputBuffer != null) {
+								mPlayerStandardOutputBuffer.add(readLine);
+							}
+						}
 						// read next line
-					  if (MplayerIStream != null) {
-					    readLine = MplayerIStream.readLine();
-					  }
+						if (MplayerIStream != null) {
+							readLine = MplayerIStream.readLine();
+						}
 					}
 				}
 				catch (IOException e) {
@@ -191,7 +214,7 @@ public class MPlayerPlayer implements Player {
 				try {
 					readLine = MplayerErrorStream.readLine();
 					while (readLine != null) {	            	  
-						System.out.println(readLine);
+						//System.out.println(readLine);
 
 						// read next line
 						readLine = MplayerErrorStream.readLine();
@@ -205,6 +228,8 @@ public class MPlayerPlayer implements Player {
 		});
 
 		tErrorMplayer.start();
+
+
 
 	}
 
@@ -328,6 +353,7 @@ public class MPlayerPlayer implements Player {
 			}		
 
 			state.set(State.PLAYING);
+			nowPlaying = null;
 		}
 	} // playAudioStream
 
@@ -365,7 +391,7 @@ public class MPlayerPlayer implements Player {
 					} catch (IOException e) {
 						// Ignore
 					}
-					
+
 				}
 			}
 		});
@@ -373,7 +399,7 @@ public class MPlayerPlayer implements Player {
 		copyThread.start();
 
 		while (!dst.exists()) {};
-		
+
 		return dst.getAbsolutePath();
 	}
 
@@ -392,7 +418,7 @@ public class MPlayerPlayer implements Player {
 	 * @param append
 	 */
 	private void playFile(String file,boolean append) {
-		
+
 		String tmpFile = copyFileToTmpDir(file);
 		tmpFiles.add(tmpFile);
 
@@ -414,38 +440,38 @@ public class MPlayerPlayer implements Player {
 	 * 
 	 */
 	private void notifyNextStream() {
-	
+
 		Thread t = new Thread(new Runnable() {
-			
+
 			public void run() {
 				for (PlayerListener listener : listeners) {
 					listener.nextStreamNotified();
 				}
-				
+
 				deleteOldestTmpFile();
-				
+
 				String nextFileToPlay = playList.getNextAudioFileName();
 				if (nextFileToPlay != null) {
 					playFile(nextFileToPlay, true);
 				}		
 			}
 		});
-		
+
 		t.start();
-		
+
 	}
 
 	/**
 	 * 
 	 */
 	private void deleteOldestTmpFile() {
-		
+
 		String file = tmpFiles.remove(0);
 		if (file != null) {
 			File f = new File(file);
 			f.delete();
 		}
-		
+
 	}
 
 	/**
@@ -461,22 +487,22 @@ public class MPlayerPlayer implements Player {
 	 * 
 	 */
 	public void setGain(float gain) {
-		
+
 		int intGain = (int) (gain * 100);
 		try {
 			sendCommandToMPlayer("volume "+intGain+" 1");
 		} catch (IOException e) {
 			throw new RuntimeException("Error while setting volume");
 		}
-		
-		
+
+
 	}
 
 	public void close() {
-	  
-	  mPlayerStandardOutputBuffer = null;
-	  
-	  
+
+		mPlayerStandardOutputBuffer = null;
+
+
 		if (mplayerProcess != null) {
 			mplayerProcess.destroy();	
 		}
