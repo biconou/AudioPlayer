@@ -33,7 +33,6 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
-
 import javax.sound.sampled.SourceDataLine;
 
 
@@ -77,6 +76,11 @@ public class MPlayerPlayer implements Player {
 	private String tmpDir = null;
 	List<String> tmpFiles = new ArrayList<String>();
 	private Process mplayerProcess;
+	List<String> mPlayerStandardOutputBuffer = null;
+	
+	private Thread tTreatOutputMplayer = null;
+	private Thread tReadOutputMplayer = null; 
+	
 
 
 	public MPlayerPlayer() throws IOException {
@@ -127,22 +131,46 @@ public class MPlayerPlayer implements Player {
 		final  BufferedReader MplayerErrorStream = new BufferedReader(new InputStreamReader(mplayerProcess.getErrorStream()));
 
 
-
+		mPlayerStandardOutputBuffer = new ArrayList<String>();
+		
+		// Tread MPlayer standard output
+		tTreatOutputMplayer = new Thread(new Runnable() {
+      
+      @Override
+      public void run() {
+        while (mPlayerStandardOutputBuffer != null) {
+          if (mPlayerStandardOutputBuffer.size() > 0) {
+            String readLine = mPlayerStandardOutputBuffer.remove(0);
+            if (readLine != null) {
+              if (readLine.startsWith("EOF code: 1")) {
+                notifyNextStream();
+              }
+            }
+          }
+        }
+      }
+    });
+		
+		tTreatOutputMplayer.start();
+		
+		
 		// Read MPlayer standard output
-		Thread tOutputMplayer = new Thread(new Runnable() {
+		tReadOutputMplayer = new Thread(new Runnable() {
 
 			public void run() {
+			  
 				String readLine;
 				try {
 					readLine = MplayerIStream.readLine();
-					while (readLine != null) {	            	  
+					while (MplayerIStream != null && readLine != null) {	            	  
 						//System.out.println(readLine);
-						if (readLine.startsWith("EOF code: 1")) {
-							notifyNextStream();
-						}
-
+					  if (mPlayerStandardOutputBuffer != null) {
+					    mPlayerStandardOutputBuffer.add(readLine);
+					  }
 						// read next line
-						readLine = MplayerIStream.readLine();
+					  if (MplayerIStream != null) {
+					    readLine = MplayerIStream.readLine();
+					  }
 					}
 				}
 				catch (IOException e) {
@@ -152,7 +180,7 @@ public class MPlayerPlayer implements Player {
 			}
 		});
 
-		tOutputMplayer.start();
+		tReadOutputMplayer.start();
 
 
 		// Read MPlayer standard error
@@ -445,6 +473,10 @@ public class MPlayerPlayer implements Player {
 	}
 
 	public void close() {
+	  
+	  mPlayerStandardOutputBuffer = null;
+	  
+	  
 		if (mplayerProcess != null) {
 			mplayerProcess.destroy();	
 		}
