@@ -1,19 +1,9 @@
 package com.github.biconou.AudioPlayer;
 
-import javax.sound.sampled.AudioInputStream;
+import java.io.File;
+import java.io.IOException;
 
 public interface PlayList {
 	
-	AudioInputStream getFirstAudioStream();
-	
-	String getFirstAudioFileName();
-	
-	AudioInputStream getNextAudioStream();
-	
-	String getNextAudioFileName();
-	
-	AudioInputStream getCurrentAudioStream();
-	
-	String getCurrentAudioFileName();
-
+    File getNextAudioFile() throws IOException;
 }

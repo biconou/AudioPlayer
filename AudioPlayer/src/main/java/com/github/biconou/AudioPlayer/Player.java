@@ -9,40 +9,20 @@ public interface Player {
 	    CLOSED
 	}
 
-	/**
-	 * Returns the player state.
-	 */
-	public abstract State getState();
+	public State getState();
 
-	/**
-	 * 
-	 * @param palyList
-	 */
-	public abstract void setPlayList(PlayList playList);
+	public void setPlayList(PlayList playList);
 
-	/**
-	 * 
-	 */
-	public abstract void registerListener(PlayerListener listener);
+	public void registerListener(PlayerListener listener);
 
-	/**
-	 * 
-	 */
-	public abstract void stop();
+	public void stop();
 
-	/**
-	 * 
-	 */
-	public abstract void pause();
+	public void pause();
 
-	/** 
-	 * Plays audio from the given audio input stream. 
-	 * @param audioInputStream  The audio stream to play
-	 */
-	public abstract void play() throws NothingToPlayException; // playAudioStream
+	public void play() throws NothingToPlayException;
 	
-	public abstract void setGain(float gain);
+	public void setGain(float gain);
 	
-	public abstract void close();
+	public void close();
 
 }

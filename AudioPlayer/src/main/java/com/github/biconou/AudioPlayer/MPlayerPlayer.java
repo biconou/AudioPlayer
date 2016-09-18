@@ -34,7 +34,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.SourceDataLine;
+import javax.sound.sampled.spi.AudioFileReader;
 
 import org.slf4j.LoggerFactory;
 
@@ -71,7 +73,7 @@ public class MPlayerPlayer implements Player {
 
 	SourceDataLine dataLine = null;
 
-	BufferedMultipleAudioInputStream bufferedStream = null;
+	//BufferedMultipleAudioInputStream bufferedStream = null;
 
 	List<PlayerListener> listeners = new ArrayList<PlayerListener>();
 
@@ -193,7 +195,7 @@ public class MPlayerPlayer implements Player {
 								nowPlaying = readLine;
 								if (wasPlaying != null) {
 									LOG.debug("invoque notifyNextStream();");
-									notifyNextStream();
+									//notifyNextStream();
 								}
 							}
 						}
@@ -296,7 +298,7 @@ public class MPlayerPlayer implements Player {
 	 * @param args Command line parameters
 	 * @throws Exception 
 	 */
-	public static void main(String [] args) throws Exception {
+/*	public static void main(String [] args) throws Exception {
 		// Process arguments.
 		try {
 			playAudioFiles(args);
@@ -305,7 +307,7 @@ public class MPlayerPlayer implements Player {
 			e.printStackTrace();
 		}
 	} // main
-
+*/
 
 	/* (non-Javadoc)
 	 * @see com.github.biconou.AudioPlayer.Player#setPlayList(com.github.biconou.AudioPlayer.PlayList)
@@ -342,7 +344,7 @@ public class MPlayerPlayer implements Player {
 	 * @param fileName  The file to play
 	 * @throws IOException 
 	 */
-	public static void playAudioFiles(String[] fileName) throws Exception {
+/*	public static void playAudioFiles(String[] fileName) throws Exception {
 
 		PlayList playList = new ArrayPlayList(fileName); 
 
@@ -356,7 +358,7 @@ public class MPlayerPlayer implements Player {
 			e.printStackTrace();
 		}
 	} 
-
+*/
 
 	/* (non-Javadoc)
 	 * @see com.github.biconou.AudioPlayer.Player#stop()
@@ -406,7 +408,7 @@ public class MPlayerPlayer implements Player {
 			}
 
 			// Loads the first file in list
-			String file = playList.getFirstAudioFileName();
+			/*String file = playList.getFirstAudioFileName();
 			if (file == null) {
 				throw new NothingToPlayException();
 			}
@@ -417,7 +419,7 @@ public class MPlayerPlayer implements Player {
 			if (nextFileToPlay != null) {
 				playFile(nextFileToPlay, true);
 			}		
-
+*/
 			state.set(State.PLAYING);
 		}
 	} // playAudioStream
@@ -467,7 +469,7 @@ public class MPlayerPlayer implements Player {
 	/**
 	 * 
 	 */
-	private void notifyNextStream() {
+	private void notifyNextStream(AudioInputStream nextAudioStream) {
 
 		LOG.debug("Begin notifyNextStream()");
 		Thread t = new Thread(new Runnable() {
@@ -476,16 +478,16 @@ public class MPlayerPlayer implements Player {
 				LOG.debug("Notify listeners");
 				for (PlayerListener listener : listeners) {
 					LOG.debug("Notify listener {}",listener);
-					listener.nextStreamNotified();
+					listener.nextStreamNotified(nextAudioStream);
 				}
 
 				LOG.debug("delete oldest tmp file");
 				deleteOldestTmpFile();
-
+/*
 				String nextFileToPlay = playList.getNextAudioFileName();
 				if (nextFileToPlay != null) {
 					playFile(nextFileToPlay, true);
-				}		
+				}*/
 			}
 		});
 
