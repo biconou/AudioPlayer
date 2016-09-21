@@ -85,6 +85,10 @@ public class TestAudioPlayer {
         player.setPlayList(playList);
         player.play();
 
+        Thread.sleep(4000);
+        player.setPos(5);
+
+
         while (1==1);
 
     }

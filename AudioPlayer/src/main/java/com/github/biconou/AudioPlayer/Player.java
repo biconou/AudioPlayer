@@ -3,6 +3,7 @@ package com.github.biconou.AudioPlayer;
 
 public interface Player {
 
+
 	public static enum State {
 	    PAUSED,
 	    PLAYING,
@@ -24,5 +25,7 @@ public interface Player {
 	public void setGain(float gain);
 	
 	public void close();
+
+	void setPos(int i);
 
 }

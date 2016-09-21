@@ -24,11 +24,16 @@ public class ArrayListPlayList implements PlayList {
 	@Override
 	public File getNextAudioFile() throws IOException {
 		index ++;
-        if (index < files.size()) {
-            return files.get(index);
-        } else {
-            return null;
-        }
+		return getCurrentAudioFile();
+	}
+
+	@Override
+	public File getCurrentAudioFile() {
+		if (index < files.size()) {
+			return files.get(index);
+		} else {
+			return null;
+		}
 	}
 
 }

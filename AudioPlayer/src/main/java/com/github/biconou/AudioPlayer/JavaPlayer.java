@@ -118,6 +118,7 @@ public class JavaPlayer implements Player {
     List<PlayerListener> listeners = new ArrayList<PlayerListener>();
     Boolean mustPause = Boolean.FALSE;
     Boolean mustStop = Boolean.FALSE;
+    int pos = -1;
     AudioFormat previousUsedAudioFormat = null;
 
 
@@ -141,6 +142,10 @@ public class JavaPlayer implements Player {
         mustPause = Boolean.TRUE;
     }
 
+    public void setPos(int posInSeconds) {
+        this.pos = posInSeconds;
+    }
+
     public void play() throws NothingToPlayException {
 
         if (getState().equals(State.PAUSED)) {
@@ -152,24 +157,20 @@ public class JavaPlayer implements Player {
             }
 
             Thread playerThread = new Thread(() -> {
-                AudioInputStream nextAudioStream = null;
+                AudioInputStream audioStreamToPlay = null;
                 try {
-                    nextAudioStream = getNextStreamFromPlayList();
+                    audioStreamToPlay = getNextStreamFromPlayList();
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
-                while (nextAudioStream != null) {
+                while (audioStreamToPlay != null) {
 
-                    notifyNextStream(nextAudioStream);
+                    notifyNextStream(audioStreamToPlay);
 
                     state.set(State.PLAYING);
 
-                    AudioInputStream audioStreamToPlay = nextAudioStream;
-
                     // Audio format provides information like sample rate, size, channels.
-                    AudioFormat audioFormat = nextAudioStream.getFormat();
-
-
+                    AudioFormat audioFormat = audioStreamToPlay.getFormat();
                     try {
                         if (previousUsedAudioFormat == null || !audioFormat.toString().equals(previousUsedAudioFormat.toString())) {
                             previousUsedAudioFormat = audioFormat;
@@ -211,8 +212,17 @@ public class JavaPlayer implements Player {
                                 notifyEnd();
                                 state.set(State.CLOSED);
                             } else if (mustPause) {
-                                // do nothing and continue loop
+                                state.set(State.PAUSED);
                             }else {
+                                if (pos > -1) {
+                                    audioStreamToPlay = getCurrentStreamFromPlayList();
+                                    for (int i=0;i<pos-1;i++) {
+                                        bytes = audioStreamToPlay.read(buffer, 0, bufferSize);
+                                    }
+                                    //audioStreamToPlay.skip(bufferSize * pos-1);
+                                    bytes = audioStreamToPlay.read(buffer, 0, bufferSize);
+                                    pos = -1;
+                                }
                                 dataLine.write(buffer, 0, bytes);
                                 bytes = audioStreamToPlay.read(buffer, 0, bufferSize);
                             }
@@ -223,10 +233,10 @@ public class JavaPlayer implements Player {
                     }
 
                     if (state.get() == State.CLOSED) {
-                        nextAudioStream = null;
+                        audioStreamToPlay = null;
                     } else {
                         try {
-                            nextAudioStream = getNextStreamFromPlayList();
+                            audioStreamToPlay = getNextStreamFromPlayList();
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
@@ -241,6 +251,15 @@ public class JavaPlayer implements Player {
 
     private AudioInputStream getNextStreamFromPlayList() throws IOException {
         File file = playList.getNextAudioFile();
+        if (file != null) {
+            return getAudioInputStream(file);
+        } else {
+            return null;
+        }
+    }
+
+    private AudioInputStream getCurrentStreamFromPlayList() throws IOException {
+        File file = playList.getCurrentAudioFile();
         if (file != null) {
             return getAudioInputStream(file);
         } else {

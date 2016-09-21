@@ -548,6 +548,11 @@ public class MPlayerPlayer implements Player {
 		}
 	}
 
+	@Override
+	public void setPos(int i) {
+
+	}
+
 	/**
 	 * 
 	 * @param file
