@@ -1,12 +1,9 @@
 package com.github.biconou.AudioPlayer;
 
-import javazoom.spi.mpeg.sampled.file.MpegAudioFileReader;
 import org.junit.Test;
 
 import javax.sound.sampled.*;
-import javax.sound.sampled.spi.AudioFileReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 
 public class TestAudioPlayer {
@@ -18,75 +15,60 @@ public class TestAudioPlayer {
 
     @Test
     public void mixer() {
-
         AudioSystem.getMixerInfo();
         AudioSystem.getAudioFileTypes();
     }
 
+    @Test
+    public void ckeckDataLines() {
+
+        JavaPlayer.supportedFormats.forEach((s, audioFormat) -> System.out.println(s));
+    }
+
 
     @Test
-    public void audioStream() throws IOException, UnsupportedAudioFileException, LineUnavailableException {
+    public void playSingleWav() throws IOException, UnsupportedAudioFileException, LineUnavailableException {
+
         File file = null;
         AudioInputStream audioInputStream = null;
 
-      /*  file = new File(resourcesBasePath()+"/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 1.flac");
-        audioInputStream = AudioSystem.getAudioInputStream(file);
-        audioInputStream.getFormat().toString();
-        */
-
-        file = new File(resourcesBasePath()+"/WAV/naim-test-2-wav-24-96000.wav");
         //file = new File(resourcesBasePath()+"/WAV/naim-test-2-wav-16-44100.wav");
+        file = new File(resourcesBasePath()+"/WAV/naim-test-2-wav-24-96000.wav");
         audioInputStream = JavaPlayer.getAudioInputStream(file);
-        //Mixer mixer = AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]);
         AudioFormat audioFormat = audioInputStream.getFormat();
 
-        AudioFormat convertedFormat = new AudioFormat(
-                AudioFormat.Encoding.PCM_SIGNED,
-                (float)44100,
-                16,
-                audioFormat.getChannels(),
-                4,
-                (float)44100,
-                false);
-
-        AudioSystem.isConversionSupported(convertedFormat,audioFormat);
         DataLine.Info info = new DataLine.Info(SourceDataLine.class, audioFormat);
         if (!AudioSystem.isLineSupported(info)) {
             System.out.println("Play.playAudioStream does not handle this type of audio on this system.");
             return;
         }
-
-        // Create a SourceDataLine for play back (throws LineUnavailableException).
         SourceDataLine dataLine = (SourceDataLine) AudioSystem.getLine(info);
-        // System.out.println("SourceDataLine class=" + dataLine.getClass());
 
         // The line acquires system resources (throws LineAvailableException).
-        AudioInputStream toRead = audioInputStream;
         try {
             dataLine.open(audioFormat);
         } catch (LineUnavailableException e) {
-            dataLine.open(convertedFormat);
-            toRead = AudioSystem.getAudioInputStream(convertedFormat,audioInputStream);
-            audioFormat = convertedFormat;
+            e.printStackTrace();
         }
 
-        // Create a buffer for moving data from the audio stream to the line.
-        final int bufferSize = (int) audioFormat.getSampleRate() * audioFormat.getFrameSize();
+        dataLine.start();
+
+        // Buffer contains 1 second of music.
+        final int bufferSize = (int) audioFormat.getFrameRate() * audioFormat.getFrameSize();
         byte[] buffer = new byte[bufferSize];
-        int bytes = toRead.read(buffer, 0, bufferSize);
+        // Skip 5 seconds of music
+        audioInputStream.skip(5 * bufferSize);
+        int bytes = audioInputStream.read(buffer, 0, bufferSize);
         while (bytes != -1) {
                 dataLine.write(buffer, 0, bytes);
-                bytes = toRead.read(buffer, 0, bufferSize);
+                bytes = audioInputStream.read(buffer, 0, bufferSize);
             System.out.println(bytes);
         }
-
-        while(1==1);
-
     }
 
 
     @Test
-    public void play() throws Exception {
+    public void playMultipleFiles() throws Exception {
 
         ArrayListPlayList playList = new ArrayListPlayList();
         playList.addAudioFile(resourcesBasePath()+"/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 1.flac");
