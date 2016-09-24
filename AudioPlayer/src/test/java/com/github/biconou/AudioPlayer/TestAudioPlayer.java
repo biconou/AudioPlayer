@@ -2,9 +2,10 @@ package com.github.biconou.AudioPlayer;
 
 import org.junit.Test;
 
-import javax.sound.sampled.*;
-import java.io.File;
-import java.io.IOException;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Line;
+import javax.sound.sampled.Mixer;
+import java.util.Arrays;
 
 public class TestAudioPlayer {
 
@@ -15,18 +16,20 @@ public class TestAudioPlayer {
 
     @Test
     public void mixer() {
-        AudioSystem.getMixerInfo();
+        Mixer.Info[] infos = AudioSystem.getMixerInfo();
+        Arrays.stream(infos).forEach(info -> {
+            System.out.println(info.getName()+" : "+info.getDescription());
+            Mixer mixer = AudioSystem.getMixer(info);
+            Line.Info[] lineInfos = mixer.getSourceLineInfo();
+            Arrays.stream(lineInfos).forEach(lineInfo -> {
+                //System.out.println(lineInfo.toString());
+            });
+        });
         AudioSystem.getAudioFileTypes();
     }
 
-    @Test
-    public void ckeckDataLines() {
 
-        JavaPlayer.supportedFormats.forEach((s, audioFormat) -> System.out.println(s));
-    }
-
-
-    @Test
+ /*   @Test
     public void playSingleWav() throws IOException, UnsupportedAudioFileException, LineUnavailableException {
 
         File file = null;
@@ -37,12 +40,16 @@ public class TestAudioPlayer {
         audioInputStream = JavaPlayer.getAudioInputStream(file);
         AudioFormat audioFormat = audioInputStream.getFormat();
 
+        // Choose a mixer
+        Mixer.Info[] infos = AudioSystem.getMixerInfo();
+        Mixer mixer = AudioSystem.getMixer(infos[3]);
+
         DataLine.Info info = new DataLine.Info(SourceDataLine.class, audioFormat);
         if (!AudioSystem.isLineSupported(info)) {
             System.out.println("Play.playAudioStream does not handle this type of audio on this system.");
             return;
         }
-        SourceDataLine dataLine = (SourceDataLine) AudioSystem.getLine(info);
+        SourceDataLine dataLine = (SourceDataLine) mixer.getLine(info);
 
         // The line acquires system resources (throws LineAvailableException).
         try {
@@ -64,7 +71,7 @@ public class TestAudioPlayer {
                 bytes = audioInputStream.read(buffer, 0, bufferSize);
             System.out.println(bytes);
         }
-    }
+    } */
 
 
     @Test
@@ -80,7 +87,7 @@ public class TestAudioPlayer {
         playList.addAudioFile(resourcesBasePath()+"/Music/_DIR_ Sixteen Horsepower/_DIR_ Sackcloth 'n' Ashes/Sixteen Horsepower - 10 Reed Neck Reel.mp3");
 
 
-        Player player = new JavaPlayer();
+        Player player = new JavaPlayer(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
         player.registerListener(new ConsoleLogPlayerListener());
         player.setPlayList(playList);
         player.play();

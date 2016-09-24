@@ -6,6 +6,8 @@ import com.sun.media.sound.WaveFileReader;
 import com.sun.media.sound.WaveFloatFileReader;
 import javazoom.spi.mpeg.sampled.file.MpegAudioFileReader;
 import org.kc7bfi.jflac.sound.spi.FlacAudioFileReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.sound.sampled.*;
 import javax.sound.sampled.spi.AudioFileReader;
@@ -20,6 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class JavaPlayer implements Player {
 
+    private static Logger log = LoggerFactory.getLogger(JavaPlayer.class);
 
     public static AudioFormat PCM_SIGNED_44100_16_LE = new AudioFormat(
             AudioFormat.Encoding.PCM_SIGNED,
@@ -40,35 +43,24 @@ public class JavaPlayer implements Player {
             false);
 
     public static List<AudioFormat> allFormats = new ArrayList<>();
-    public static Map<String,AudioFormat> supportedFormats = new HashMap<>();
 
     static {
         allFormats.add(PCM_SIGNED_44100_16_LE);
         allFormats.add(PCM_SIGNED_96000_24_LE);
-
-        allFormats.forEach(format -> {
-            System.out.println(format.toString());
-            SourceDataLine dataLine = null;
-            DataLine.Info info = new DataLine.Info(SourceDataLine.class, format);
-            if (!AudioSystem.isLineSupported(info)) {
-                System.out.println("Play.playAudioStream does not handle this type of audio on this system.");
-            } else {
-                try {
-                    dataLine = (SourceDataLine) AudioSystem.getLine(info);
-                    dataLine.open(format);
-                    dataLine.close();
-                    supportedFormats.put(format.toString(),format);
-                } catch (LineUnavailableException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
     }
 
-    private static boolean isFormatSupported(AudioFormat format) {
-        final boolean[] isSupported = {false};
-        supportedFormats.keySet().forEach(s -> {if (format.toString().equals(s)) isSupported[0] = true;});
-        return isSupported[0];
+
+    private static String computeFormatKey(AudioFormat format) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(format.getEncoding()).append("_");
+        sb.append((long)format.getSampleRate()).append("_");
+        sb.append(format.getSampleSizeInBits()).append("_");
+        if (format.isBigEndian()) {
+            sb.append("BE");
+        } else {
+            sb.append("LE");
+        }
+        return sb.toString();
     }
 
     private static AudioFileReader[] audioFileReaders;
@@ -82,7 +74,59 @@ public class JavaPlayer implements Player {
         audioFileReaders[4] = new MpegAudioFileReader();
     }
 
-    public static AudioInputStream getAudioInputStream(File file) {
+
+    private final AtomicReference<State> state = new AtomicReference<State>(State.CLOSED);
+
+    PlayList playList = null;
+    SourceDataLine dataLine = null;
+    List<PlayerListener> listeners = new ArrayList<PlayerListener>();
+    Boolean mustPause = Boolean.FALSE;
+    Boolean mustStop = Boolean.FALSE;
+    int pos = -1;
+    AudioFormat previousUsedAudioFormat = null;
+    private Mixer mixer;
+    private Map<String,AudioFormat> supportedFormats = new HashMap<>();
+
+    public JavaPlayer(Mixer mixer) {
+        init(mixer);
+    }
+
+
+    public JavaPlayer() {
+        init(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
+    }
+
+    private void init(Mixer mixer) {
+        log.info("mixer is : {} - {}",mixer.getMixerInfo().getName(),mixer.getMixerInfo().getDescription());
+        this.mixer = mixer;
+
+        allFormats.forEach(format -> {
+            SourceDataLine dataLine = null;
+            DataLine.Info info = new DataLine.Info(SourceDataLine.class, format);
+            if (!mixer.isLineSupported(info)) {
+                log.info("Unsupported format : {}",format.toString());
+            } else {
+                try {
+                    dataLine = (SourceDataLine) mixer.getLine(info);
+                    dataLine.open(format);
+                    dataLine.close();
+                    supportedFormats.put(computeFormatKey(format),format);
+                    log.info("Supported format : {}",format.toString());
+                } catch (LineUnavailableException e) {
+                    log.info("Unsupported format : {}",format.toString());
+                }
+            }
+        });
+
+    }
+
+    private boolean isFormatSupported(AudioFormat format) {
+        final boolean[] isSupported = {false};
+        supportedFormats.keySet().forEach(s -> {if (computeFormatKey(format).equals(s)) isSupported[0] = true;});
+        return isSupported[0];
+    }
+
+    public AudioInputStream getAudioInputStream(File file) {
         AudioInputStream audioInputStream = null;
         for (int i=0;i<audioFileReaders.length;i++) {
             try {
@@ -96,30 +140,25 @@ public class JavaPlayer implements Player {
         }
 
         AudioFormat audioFormat = audioInputStream.getFormat();
-        int sampleSizeInBits = audioFormat.getSampleSizeInBits();
-        float sampleRate = audioFormat.getSampleRate();
+        log.debug("Raw format : {} ({})",audioFormat.toString(),file.getName());
 
-        AudioFormat targetFormat = PCM_SIGNED_44100_16_LE;
+        if (!isFormatSupported(audioFormat)) {
+            int sampleSizeInBits = audioFormat.getSampleSizeInBits();
+            float sampleRate = audioFormat.getSampleRate();
 
-        if (sampleSizeInBits == 24 && sampleRate == (float) 96000) {
-            if (isFormatSupported(PCM_SIGNED_96000_24_LE)) {
-                targetFormat = PCM_SIGNED_96000_24_LE;
+            AudioFormat targetFormat = PCM_SIGNED_44100_16_LE;
+
+            if (sampleSizeInBits == 24 && sampleRate == (float) 96000) {
+                if (isFormatSupported(PCM_SIGNED_96000_24_LE)) {
+                    targetFormat = PCM_SIGNED_96000_24_LE;
+                }
             }
+            audioInputStream = AudioSystem.getAudioInputStream(targetFormat, audioInputStream);
+            log.debug("Converted to format : {}",targetFormat);
         }
 
-        return AudioSystem.getAudioInputStream(targetFormat, audioInputStream);
-
+        return audioInputStream;
     }
-
-    private final AtomicReference<State> state = new AtomicReference<State>(State.CLOSED);
-
-    PlayList playList = null;
-    SourceDataLine dataLine = null;
-    List<PlayerListener> listeners = new ArrayList<PlayerListener>();
-    Boolean mustPause = Boolean.FALSE;
-    Boolean mustStop = Boolean.FALSE;
-    int pos = -1;
-    AudioFormat previousUsedAudioFormat = null;
 
 
     public State getState() {
@@ -188,7 +227,7 @@ public class JavaPlayer implements Player {
                             }
 
                             // Create a SourceDataLine for play back (throws LineUnavailableException).
-                            dataLine = (SourceDataLine) AudioSystem.getLine(info);
+                            dataLine = (SourceDataLine) mixer.getLine(info);
                             // System.out.println("SourceDataLine class=" + dataLine.getClass());
 
                             // The line acquires system resources (throws LineAvailableException).
