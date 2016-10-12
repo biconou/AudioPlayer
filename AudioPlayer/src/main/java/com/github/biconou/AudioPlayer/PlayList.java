@@ -8,4 +8,13 @@ public interface PlayList {
     File getNextAudioFile() throws IOException;
 
     File getCurrentAudioFile();
+
+    void addToPlayList(File file);
+
+    int getSize();
+
+    int getIndex();
+
+    void reset();
+
 }

@@ -96,7 +96,13 @@ public class JavaPlayer implements Player {
         init(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
     }
 
+    /**
+     * Initialisation of the player, done by the constructor.
+     *
+     * @param mixer The mixer chosen for this player.
+     */
     private void init(Mixer mixer) {
+        log.info("Player {} initialisation",this);
         log.info("mixer is : {} - {}",mixer.getMixerInfo().getName(),mixer.getMixerInfo().getDescription());
         this.mixer = mixer;
 
@@ -117,7 +123,7 @@ public class JavaPlayer implements Player {
                 }
             }
         });
-
+        log.info("Player {} initialized",this);
     }
 
     private boolean isFormatSupported(AudioFormat format) {
@@ -169,87 +175,154 @@ public class JavaPlayer implements Player {
         this.playList = playList;
     }
 
+    /**
+     * Deletes the play list.
+     *
+     * @exception RuntimeException thrown is the player is in playing/paused state
+     */
+    @Override
+    public void deletePlayList() {
+        if (isPlaying() || isPaused()) {
+            throw new RuntimeException("Can not delete the play list while the player is playing.");
+        }
+        this.playList = new ArrayListPlayList();
+    }
+
     public void registerListener(PlayerListener listener) {
         listeners.add(listener);
     }
 
-    public void stop() {
-        this.mustStop = Boolean.TRUE;
+    @Override
+    public void addToPlayList(String filePath) {
+        File file = new File(filePath);
+        playList.addToPlayList(file);
     }
+
+    /**
+     * Returns whether the player is playing music.
+     * @return
+     */
+    @Override
+    public boolean isPlaying() {
+        return getState().equals(State.PLAYING);
+    }
+
+    /**
+     * Returns whether the player is paused at the moment.
+     * @return
+     */
+    @Override
+    public boolean isPaused() {
+        return getState().equals(State.PAUSED);
+    }
+
+    public void stop() {
+        notifyEvent(PlayerListener.Event.STOP);
+        if (isPlaying() || isPaused()) {
+            log.debug("Player {} : stop.", this);
+            this.mustStop = Boolean.TRUE;
+            log.debug("reseting play list");
+        }
+        // wait until stop is complete
+        while (!getState().equals(State.CLOSED));
+    }
+
+    private void doStop() {
+        stopLine();
+        mustStop = false;
+        previousUsedAudioFormat = null;
+        pos = -1;
+        if (playList != null) {
+            playList.reset();
+        }
+        state.set(State.CLOSED);
+    }
+
 
     public void pause() {
         mustPause = Boolean.TRUE;
+        notifyEvent(PlayerListener.Event.PAUSE);
     }
 
     public void setPos(int posInSeconds) {
         this.pos = posInSeconds;
     }
 
+    /**
+     * Starts playing or resume playing if the player was paused.
+     *
+     * @throws NothingToPlayException
+     */
     public void play() throws NothingToPlayException {
 
+        log.debug("Player {} : Play",this);
+
         if (getState().equals(State.PAUSED)) {
+            log.debug("The player is paused. Try to resume");
             mustPause = Boolean.FALSE;
         } else {
 
             if (playList == null) {
+                log.debug("The playlist is null. Nothing to play");
                 throw new NothingToPlayException();
             }
 
+            playList.reset();
+
+            // start a thread that plays the audio streams from the play list.
             Thread playerThread = new Thread(() -> {
                 AudioInputStream audioStreamToPlay = null;
                 try {
+                    // Getting the next stream here returns the first one in play list.
                     audioStreamToPlay = getNextStreamFromPlayList();
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
                 while (audioStreamToPlay != null) {
 
-                    notifyNextStream(audioStreamToPlay);
-
                     state.set(State.PLAYING);
+                    notifyEvent(PlayerListener.Event.BEGIN);
 
                     // Audio format provides information like sample rate, size, channels.
                     AudioFormat audioFormat = audioStreamToPlay.getFormat();
                     try {
                         if (previousUsedAudioFormat == null || !audioFormat.toString().equals(previousUsedAudioFormat.toString())) {
+                            if (previousUsedAudioFormat != null) {
+                                log.debug("The previously used audio format was different. We will start a new line.");
+                            }
                             previousUsedAudioFormat = audioFormat;
                             if (dataLine != null) {
+                                log.debug("closing the current line.");
                                 dataLine.close();
                             }
 
-                            // Open a data line to play our type of sampled audio.
-                            // Use SourceDataLine for play and TargetDataLine for record.
-
                             DataLine.Info info = new DataLine.Info(SourceDataLine.class, audioFormat);
                             if (!AudioSystem.isLineSupported(info)) {
-                                System.out.println("Play.playAudioStream does not handle this type of audio on this system.");
-                                return;
+                                throw new RuntimeException("Play.playAudioStream does not handle this type of audio on this system.");
                             }
 
-                            // Create a SourceDataLine for play back (throws LineUnavailableException).
                             dataLine = (SourceDataLine) mixer.getLine(info);
-                            // System.out.println("SourceDataLine class=" + dataLine.getClass());
+                            log.debug("A new line {} has been picked.",dataLine);
 
-                            // The line acquires system resources (throws LineAvailableException).
                             try {
                                 dataLine.open(audioFormat);
+                                log.debug("dataline opened");
                             } catch (LineUnavailableException e) {
                                 throw new RuntimeException(e);
                             }
 
                             // Allows the line to move data in and out to a port.
                             dataLine.start();
+                            log.debug("dataline started");
                         }
 
-                        // Create a buffer for moving data from the audio stream to the line.
                         final int bufferSize = (int) audioFormat.getSampleRate() * audioFormat.getFrameSize();
                         byte[] buffer = new byte[bufferSize];
                         int bytes = audioStreamToPlay.read(buffer, 0, bufferSize);
                         while (bytes != -1) {
                             if (mustStop) {
-                                stopLine();
-                                notifyEnd();
-                                state.set(State.CLOSED);
+                                bytes = -1;
+                                doStop();
                             } else if (mustPause) {
                                 state.set(State.PAUSED);
                             }else {
@@ -258,7 +331,6 @@ public class JavaPlayer implements Player {
                                     for (int i=0;i<pos-1;i++) {
                                         bytes = audioStreamToPlay.read(buffer, 0, bufferSize);
                                     }
-                                    //audioStreamToPlay.skip(bufferSize * pos-1);
                                     bytes = audioStreamToPlay.read(buffer, 0, bufferSize);
                                     pos = -1;
                                 }
@@ -266,33 +338,42 @@ public class JavaPlayer implements Player {
                                 bytes = audioStreamToPlay.read(buffer, 0, bufferSize);
                             }
                         }
-
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
+
 
                     if (state.get() == State.CLOSED) {
                         audioStreamToPlay = null;
                     } else {
                         try {
+                            notifyEvent(PlayerListener.Event.END);
                             audioStreamToPlay = getNextStreamFromPlayList();
+                            if (audioStreamToPlay == null) {
+                                notifyEvent(PlayerListener.Event.FINISHED);
+                                doStop();
+                            }
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
                     }
                 }
 
-            },this.getClass().getName()+".Tplayer");
+            },this.getClass().getName()+".Tplayer"); // The name of the Thread ends with Tplayer.
 
             playerThread.start();
         }
     }
 
+
     private AudioInputStream getNextStreamFromPlayList() throws IOException {
+        log.debug("Player {} - getNextStreamFromPlayList : playlist count={} playlist index=",this,playList.getSize(),playList.getIndex());
         File file = playList.getNextAudioFile();
         if (file != null) {
+            log.debug("Picking from play list : file {}.",file.getAbsolutePath());
             return getAudioInputStream(file);
         } else {
+            log.debug("Nothing picked from playlist.");
             return null;
         }
     }
@@ -306,15 +387,31 @@ public class JavaPlayer implements Player {
         }
     }
 
-    private void notifyNextStream(AudioInputStream nextAudioStream) {
-        for (PlayerListener listener : listeners) {
-            listener.nextStreamNotified(nextAudioStream);
+    private void notifyEvent(PlayerListener.Event event) {
+        int index = -1;
+        File currentFile = null;
+        if (playList != null) {
+            index = playList.getIndex();
+            currentFile = playList.getCurrentAudioFile();
         }
-    }
-
-    private void notifyEnd() {
         for (PlayerListener listener : listeners) {
-            listener.endNotified();
+            switch (event) {
+                case BEGIN:
+                    listener.onBegin(index,currentFile);
+                    break;
+                case END:
+                    listener.onEnd(index,currentFile);
+                    break;
+                case FINISHED:
+                    listener.onFinished();
+                    break;
+                case PAUSE:
+                    listener.onPause();
+                    break;
+                case STOP:
+                    listener.onStop();
+                    break;
+            }
         }
     }
 

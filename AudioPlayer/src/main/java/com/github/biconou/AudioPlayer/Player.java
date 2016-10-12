@@ -4,27 +4,35 @@ package com.github.biconou.AudioPlayer;
 public interface Player {
 
 
-	public static enum State {
+	enum State {
 	    PAUSED,
 	    PLAYING,
 	    CLOSED
 	}
 
-	public State getState();
+	State getState();
 
-	public void setPlayList(PlayList playList);
+	void setPlayList(PlayList playList);
 
-	public void registerListener(PlayerListener listener);
+    void deletePlayList();
 
-	public void stop();
+	void registerListener(PlayerListener listener);
 
-	public void pause();
+    void addToPlayList(String filePath);
 
-	public void play() throws NothingToPlayException;
+    boolean isPlaying();
+
+    boolean isPaused();
+
+    void stop();
+
+	void pause();
+
+	void play() throws NothingToPlayException;
 	
-	public void setGain(float gain);
+	void setGain(float gain);
 	
-	public void close();
+	void close();
 
 	void setPos(int i);
 

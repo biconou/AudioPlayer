@@ -29,11 +29,31 @@ public class ArrayListPlayList implements PlayList {
 
 	@Override
 	public File getCurrentAudioFile() {
-		if (index < files.size()) {
+		if (index > -1 && index < files.size()) {
 			return files.get(index);
 		} else {
 			return null;
 		}
+	}
+
+	@Override
+	public void addToPlayList(File file) {
+		files.add(file);
+	}
+
+	@Override
+	public int getSize() {
+		return files.size();
+	}
+
+	@Override
+	public int getIndex() {
+		return index;
+	}
+
+	@Override
+	public void reset() {
+		index = -1;
 	}
 
 }

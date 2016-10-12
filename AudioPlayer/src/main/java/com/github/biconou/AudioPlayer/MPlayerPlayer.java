@@ -316,11 +316,31 @@ public class MPlayerPlayer implements Player {
 		this.playList = playList;
 	}
 
+	@Override
+	public void deletePlayList() {
+
+	}
+
 	/* (non-Javadoc)
 	 * @see com.github.biconou.AudioPlayer.Player#registerListener(com.github.biconou.AudioPlayer.PlayerListener)
 	 */
 	public void registerListener(PlayerListener listener) {
 		listeners.add(listener);
+	}
+
+	@Override
+	public void addToPlayList(String filePath) {
+
+	}
+
+	@Override
+	public boolean isPlaying() {
+		return false;
+	}
+
+	@Override
+	public boolean isPaused() {
+		return false;
 	}
 
 	/**
@@ -478,7 +498,7 @@ public class MPlayerPlayer implements Player {
 				LOG.debug("Notify listeners");
 				for (PlayerListener listener : listeners) {
 					LOG.debug("Notify listener {}",listener);
-					listener.nextStreamNotified(nextAudioStream);
+					//listener.nextStreamNotified(nextAudioStream);
 				}
 
 				LOG.debug("delete oldest tmp file");
@@ -519,7 +539,7 @@ public class MPlayerPlayer implements Player {
 	 */
 	private void notifyEnd() {
 		for (PlayerListener listener : listeners) {
-			listener.endNotified();
+			//listener.endNotified();
 		}
 	}
 

@@ -24,10 +24,6 @@
   
   <build>
   <plugins>
-      <!-- ************************************************************************ -->
-      <!-- plugin de compilation java : La version de java est 1.6. -->
-      <!-- ************************************************************************ -->
-      <!-- Plugin de compilation java -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -35,6 +31,20 @@
           <source>1.8</source>
           <target>1.8</target>
         </configuration>
+      </plugin>
+      <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <version>3.0.1</version>
+          <executions>
+              <execution>
+                  <id>attach-sources</id>
+                  <phase>verify</phase>
+                  <goals>
+                      <goal>jar-no-fork</goal>
+                  </goals>
+              </execution>
+          </executions>
       </plugin>
     </plugins>
   </build>

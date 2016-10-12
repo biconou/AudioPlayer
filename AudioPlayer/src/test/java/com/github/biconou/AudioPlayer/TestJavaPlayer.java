@@ -7,10 +7,10 @@ import javax.sound.sampled.Line;
 import javax.sound.sampled.Mixer;
 import java.util.Arrays;
 
-public class TestAudioPlayer {
+public class TestJavaPlayer {
 
     private static String resourcesBasePath() {
-        return TestAudioPlayer.class.getResource("/MEDIAS").getPath();
+        return TestJavaPlayer.class.getResource("/MEDIAS").getPath();
     }
 
 
@@ -95,8 +95,57 @@ public class TestAudioPlayer {
         Thread.sleep(4000);
         player.setPos(5);
 
+        Thread.sleep(4000);
+        player.pause();
+        Thread.sleep(4000);
+        player.play();
+
+        Thread.sleep(5000);
+        player.deletePlayList();
+        player.addToPlayList(resourcesBasePath()+"/WAV/naim-test-2-wav-24-96000.wav");
+        player.play();
 
         while (1==1);
 
     }
+
+    @Test
+    public void playStopPlay() throws Exception {
+
+        ArrayListPlayList playList = new ArrayListPlayList();
+        playList.addAudioFile(resourcesBasePath()+"/Music/_DIR_ Sixteen Horsepower/_DIR_ Sackcloth 'n' Ashes/Sixteen Horsepower - 01 I Seen What I Saw.mp3");
+
+        Player player = new JavaPlayer(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
+        player.registerListener(new ConsoleLogPlayerListener());
+        player.stop();
+        player.setPlayList(playList);
+        player.play();
+        Thread.sleep(5000);
+        player.stop();
+        player.stop();
+        player.play();
+
+        Thread.sleep(40000);
+        player.stop();
+
+        //while (1==1);
+    }
+
+    @Test
+    public void playPlay() throws Exception {
+
+        ArrayListPlayList playList = new ArrayListPlayList();
+        playList.addAudioFile(resourcesBasePath()+"/Music/_DIR_ Sixteen Horsepower/_DIR_ Sackcloth 'n' Ashes/Sixteen Horsepower - 01 I Seen What I Saw.mp3");
+
+        Player player = new JavaPlayer(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
+        player.registerListener(new ConsoleLogPlayerListener());
+        player.setPlayList(playList);
+        player.play();
+        Thread.sleep(30000);
+        player.play();
+
+        while (1==1);
+
+    }
+
 }
