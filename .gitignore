@@ -4,3 +4,5 @@
 /AudioPlayer/.project
 /mplayer2-x86_64-latest
 /tmp
+*.iml
+.idea
