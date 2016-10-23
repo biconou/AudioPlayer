@@ -36,10 +36,6 @@ public class ArrayListPlayList implements PlayList {
 		}
 	}
 
-	@Override
-	public void addToPlayList(File file) {
-		files.add(file);
-	}
 
 	@Override
 	public int getSize() {
@@ -51,7 +47,6 @@ public class ArrayListPlayList implements PlayList {
 		return index;
 	}
 
-	@Override
 	public void reset() {
 		index = -1;
 	}

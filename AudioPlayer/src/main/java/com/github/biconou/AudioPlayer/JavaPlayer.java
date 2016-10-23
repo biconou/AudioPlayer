@@ -175,28 +175,11 @@ public class JavaPlayer implements Player {
         this.playList = playList;
     }
 
-    /**
-     * Deletes the play list.
-     *
-     * @exception RuntimeException thrown is the player is in playing/paused state
-     */
-    @Override
-    public void deletePlayList() {
-        if (isPlaying() || isPaused()) {
-            throw new RuntimeException("Can not delete the play list while the player is playing.");
-        }
-        this.playList = new ArrayListPlayList();
-    }
 
     public void registerListener(PlayerListener listener) {
         listeners.add(listener);
     }
 
-    @Override
-    public void addToPlayList(String filePath) {
-        File file = new File(filePath);
-        playList.addToPlayList(file);
-    }
 
     /**
      * Returns whether the player is playing music.
@@ -217,14 +200,15 @@ public class JavaPlayer implements Player {
     }
 
     public void stop() {
-        notifyEvent(PlayerListener.Event.STOP);
-        if (isPlaying() || isPaused()) {
-            log.debug("Player {} : stop.", this);
-            this.mustStop = Boolean.TRUE;
-            log.debug("reseting play list");
+        if (!getState().equals(State.CLOSED)) {
+            notifyEvent(PlayerListener.Event.STOP);
+            if (isPlaying() || isPaused()) {
+                log.debug("Player {} : stop.", this);
+                this.mustStop = Boolean.TRUE;
+            }
+            // wait until stop is complete
+            while (!getState().equals(State.STOPPED)) ;
         }
-        // wait until stop is complete
-        while (!getState().equals(State.CLOSED));
     }
 
     private void doStop() {
@@ -232,10 +216,7 @@ public class JavaPlayer implements Player {
         mustStop = false;
         previousUsedAudioFormat = null;
         pos = -1;
-        if (playList != null) {
-            playList.reset();
-        }
-        state.set(State.CLOSED);
+        state.set(State.STOPPED);
     }
 
 
@@ -266,8 +247,6 @@ public class JavaPlayer implements Player {
                 log.debug("The playlist is null. Nothing to play");
                 throw new NothingToPlayException();
             }
-
-            playList.reset();
 
             // start a thread that plays the audio streams from the play list.
             Thread playerThread = new Thread(() -> {
@@ -328,7 +307,7 @@ public class JavaPlayer implements Player {
                             }else {
                                 if (pos > -1) {
                                     audioStreamToPlay = getCurrentStreamFromPlayList();
-                                    for (int i=0;i<pos-1;i++) {
+                                    for (int i=0;i<pos;i++) {
                                         bytes = audioStreamToPlay.read(buffer, 0, bufferSize);
                                     }
                                     bytes = audioStreamToPlay.read(buffer, 0, bufferSize);
@@ -343,7 +322,7 @@ public class JavaPlayer implements Player {
                     }
 
 
-                    if (state.get() == State.CLOSED) {
+                    if (state.get() == State.STOPPED) {
                         audioStreamToPlay = null;
                     } else {
                         try {

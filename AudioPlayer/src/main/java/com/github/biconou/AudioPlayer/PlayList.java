@@ -9,12 +9,8 @@ public interface PlayList {
 
     File getCurrentAudioFile();
 
-    void addToPlayList(File file);
-
     int getSize();
 
     int getIndex();
-
-    void reset();
 
 }

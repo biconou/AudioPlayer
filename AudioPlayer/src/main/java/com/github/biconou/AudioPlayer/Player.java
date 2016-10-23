@@ -7,6 +7,7 @@ public interface Player {
 	enum State {
 	    PAUSED,
 	    PLAYING,
+        STOPPED,
 	    CLOSED
 	}
 
@@ -14,11 +15,8 @@ public interface Player {
 
 	void setPlayList(PlayList playList);
 
-    void deletePlayList();
-
 	void registerListener(PlayerListener listener);
 
-    void addToPlayList(String filePath);
 
     boolean isPlaying();
 

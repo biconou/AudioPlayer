@@ -316,11 +316,6 @@ public class MPlayerPlayer implements Player {
 		this.playList = playList;
 	}
 
-	@Override
-	public void deletePlayList() {
-
-	}
-
 	/* (non-Javadoc)
 	 * @see com.github.biconou.AudioPlayer.Player#registerListener(com.github.biconou.AudioPlayer.PlayerListener)
 	 */
@@ -328,10 +323,6 @@ public class MPlayerPlayer implements Player {
 		listeners.add(listener);
 	}
 
-	@Override
-	public void addToPlayList(String filePath) {
-
-	}
 
 	@Override
 	public boolean isPlaying() {

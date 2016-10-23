@@ -92,21 +92,30 @@ public class TestJavaPlayer {
         player.setPlayList(playList);
         player.play();
 
-        Thread.sleep(4000);
-        player.setPos(5);
+        Thread.sleep(2000);
+        player.setPos(1);
 
         Thread.sleep(4000);
         player.pause();
         Thread.sleep(4000);
         player.play();
 
-        Thread.sleep(5000);
-        player.deletePlayList();
-        player.addToPlayList(resourcesBasePath()+"/WAV/naim-test-2-wav-24-96000.wav");
-        player.play();
-
         while (1==1);
+    }
 
+    @Test
+    public void playDifferentFormats() throws Exception {
+
+        ArrayListPlayList playList = new ArrayListPlayList();
+        playList.addAudioFile(resourcesBasePath()+"/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 2.flac");
+        playList.addAudioFile(resourcesBasePath()+"/WAV/naim-test-2-wav-24-96000.wav");
+
+
+        Player player = new JavaPlayer(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
+        player.registerListener(new ConsoleLogPlayerListener());
+        player.setPlayList(playList);
+        player.play();
+        Thread.sleep(30000);
     }
 
     @Test
@@ -123,6 +132,7 @@ public class TestJavaPlayer {
         Thread.sleep(5000);
         player.stop();
         player.stop();
+        playList.reset();
         player.play();
 
         Thread.sleep(40000);
@@ -142,10 +152,9 @@ public class TestJavaPlayer {
         player.setPlayList(playList);
         player.play();
         Thread.sleep(30000);
+        playList.reset();
         player.play();
-
-        while (1==1);
-
+        Thread.sleep(30000);
     }
 
 }
