@@ -1,11 +1,15 @@
 package com.github.biconou.AudioPlayer;
 
 
+import com.github.biconou.AudioPlayer.api.PlayList;
+import com.github.biconou.AudioPlayer.api.Player;
+import com.github.biconou.AudioPlayer.api.PlayerListener;
 import com.sun.media.sound.WaveExtensibleFileReader;
 import com.sun.media.sound.WaveFileReader;
 import com.sun.media.sound.WaveFloatFileReader;
 import javazoom.spi.mpeg.sampled.file.MpegAudioFileReader;
-import org.kc7bfi.jflac.sound.spi.FlacAudioFileReader;
+import javazoom.spi.vorbis.sampled.file.VorbisAudioFileReader;
+import org.jflac.sound.spi.FlacAudioFileReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,20 +30,20 @@ public class JavaPlayer implements Player {
 
     public static AudioFormat PCM_SIGNED_44100_16_LE = new AudioFormat(
             AudioFormat.Encoding.PCM_SIGNED,
-            (float)44100,
+            (float) 44100,
             16,
             2,
             4,
-            (float)44100,
+            (float) 44100,
             false);
 
     public static AudioFormat PCM_SIGNED_96000_24_LE = new AudioFormat(
             AudioFormat.Encoding.PCM_SIGNED,
-            (float)96000,
+            (float) 96000,
             24,
             2,
             6,
-            (float)96000,
+            (float) 96000,
             false);
 
     public static List<AudioFormat> allFormats = new ArrayList<>();
@@ -53,7 +57,7 @@ public class JavaPlayer implements Player {
     private static String computeFormatKey(AudioFormat format) {
         StringBuilder sb = new StringBuilder();
         sb.append(format.getEncoding()).append("_");
-        sb.append((long)format.getSampleRate()).append("_");
+        sb.append((long) format.getSampleRate()).append("_");
         sb.append(format.getSampleSizeInBits()).append("_");
         if (format.isBigEndian()) {
             sb.append("BE");
@@ -66,12 +70,13 @@ public class JavaPlayer implements Player {
     private static AudioFileReader[] audioFileReaders;
 
     static {
-        audioFileReaders = new AudioFileReader[5];
+        audioFileReaders = new AudioFileReader[6];
         audioFileReaders[0] = new WaveFileReader();
         audioFileReaders[1] = new WaveFloatFileReader();
         audioFileReaders[2] = new WaveExtensibleFileReader();
         audioFileReaders[3] = new FlacAudioFileReader();
         audioFileReaders[4] = new MpegAudioFileReader();
+        audioFileReaders[5] = new VorbisAudioFileReader();
     }
 
 
@@ -85,7 +90,7 @@ public class JavaPlayer implements Player {
     int pos = -1;
     AudioFormat previousUsedAudioFormat = null;
     private Mixer mixer;
-    private Map<String,AudioFormat> supportedFormats = new HashMap<>();
+    private Map<String, AudioFormat> supportedFormats = new HashMap<>();
 
     public JavaPlayer(Mixer mixer) {
         init(mixer);
@@ -102,39 +107,41 @@ public class JavaPlayer implements Player {
      * @param mixer The mixer chosen for this player.
      */
     private void init(Mixer mixer) {
-        log.info("Player {} initialisation",this);
-        log.info("mixer is : {} - {}",mixer.getMixerInfo().getName(),mixer.getMixerInfo().getDescription());
+        log.info("Player {} initialisation", this);
+        log.info("mixer is : {} - {}", mixer.getMixerInfo().getName(), mixer.getMixerInfo().getDescription());
         this.mixer = mixer;
 
         allFormats.forEach(format -> {
             SourceDataLine dataLine = null;
             DataLine.Info info = new DataLine.Info(SourceDataLine.class, format);
             if (!mixer.isLineSupported(info)) {
-                log.info("Unsupported format : {}",format.toString());
+                log.info("Unsupported format : {}", format.toString());
             } else {
                 try {
                     dataLine = (SourceDataLine) mixer.getLine(info);
                     dataLine.open(format);
                     dataLine.close();
-                    supportedFormats.put(computeFormatKey(format),format);
-                    log.info("Supported format : {}",format.toString());
+                    supportedFormats.put(computeFormatKey(format), format);
+                    log.info("Supported format : {}", format.toString());
                 } catch (LineUnavailableException e) {
-                    log.info("Unsupported format : {}",format.toString());
+                    log.info("Unsupported format : {}", format.toString());
                 }
             }
         });
-        log.info("Player {} initialized",this);
+        log.info("Player {} initialized", this);
     }
 
     private boolean isFormatSupported(AudioFormat format) {
         final boolean[] isSupported = {false};
-        supportedFormats.keySet().forEach(s -> {if (computeFormatKey(format).equals(s)) isSupported[0] = true;});
+        supportedFormats.keySet().forEach(s -> {
+            if (computeFormatKey(format).equals(s)) isSupported[0] = true;
+        });
         return isSupported[0];
     }
 
-    public AudioInputStream getAudioInputStream(File file) {
+    public AudioInputStream getAudioInputStream(File file) throws UnsupportedAudioFileException {
         AudioInputStream audioInputStream = null;
-        for (int i=0;i<audioFileReaders.length;i++) {
+        for (int i = 0; i < audioFileReaders.length; i++) {
             try {
                 audioInputStream = audioFileReaders[i].getAudioInputStream(file);
                 break;
@@ -145,8 +152,12 @@ public class JavaPlayer implements Player {
             }
         }
 
+        if (audioInputStream == null) {
+            throw new UnsupportedAudioFileException();
+        }
+
         AudioFormat audioFormat = audioInputStream.getFormat();
-        log.debug("Raw format : {} ({})",audioFormat.toString(),file.getName());
+        log.debug("Raw format : {} ({})", audioFormat.toString(), file.getName());
 
         if (!isFormatSupported(audioFormat)) {
             int sampleSizeInBits = audioFormat.getSampleSizeInBits();
@@ -160,7 +171,7 @@ public class JavaPlayer implements Player {
                 }
             }
             audioInputStream = AudioSystem.getAudioInputStream(targetFormat, audioInputStream);
-            log.debug("Converted to format : {}",targetFormat);
+            log.debug("Converted to format : {}", targetFormat);
         }
 
         return audioInputStream;
@@ -183,6 +194,7 @@ public class JavaPlayer implements Player {
 
     /**
      * Returns whether the player is playing music.
+     *
      * @return
      */
     @Override
@@ -192,6 +204,7 @@ public class JavaPlayer implements Player {
 
     /**
      * Returns whether the player is paused at the moment.
+     *
      * @return
      */
     @Override
@@ -236,7 +249,7 @@ public class JavaPlayer implements Player {
      */
     public void play() throws NothingToPlayException {
 
-        log.debug("Player {} : Play",this);
+        log.debug("Player {} : Play", this);
 
         if (getState().equals(State.PAUSED)) {
             log.debug("The player is paused. Try to resume");
@@ -253,8 +266,8 @@ public class JavaPlayer implements Player {
                 AudioInputStream audioStreamToPlay = null;
                 try {
                     // Getting the next stream here returns the first one in play list.
-                    audioStreamToPlay = getNextStreamFromPlayList();
-                } catch (IOException e) {
+                    audioStreamToPlay = getCurrentStreamFromPlayList();
+                } catch (IOException|UnsupportedAudioFileException e) {
                     throw new RuntimeException(e);
                 }
                 while (audioStreamToPlay != null) {
@@ -281,7 +294,7 @@ public class JavaPlayer implements Player {
                             }
 
                             dataLine = (SourceDataLine) mixer.getLine(info);
-                            log.debug("A new line {} has been picked.",dataLine);
+                            log.debug("A new line {} has been picked.", dataLine);
 
                             try {
                                 dataLine.open(audioFormat);
@@ -304,10 +317,10 @@ public class JavaPlayer implements Player {
                                 doStop();
                             } else if (mustPause) {
                                 state.set(State.PAUSED);
-                            }else {
+                            } else {
                                 if (pos > -1) {
                                     audioStreamToPlay = getCurrentStreamFromPlayList();
-                                    for (int i=0;i<pos;i++) {
+                                    for (int i = 0; i < pos; i++) {
                                         bytes = audioStreamToPlay.read(buffer, 0, bufferSize);
                                     }
                                     bytes = audioStreamToPlay.read(buffer, 0, bufferSize);
@@ -332,24 +345,24 @@ public class JavaPlayer implements Player {
                                 notifyEvent(PlayerListener.Event.FINISHED);
                                 doStop();
                             }
-                        } catch (IOException e) {
+                        } catch (IOException|UnsupportedAudioFileException e) {
                             throw new RuntimeException(e);
                         }
                     }
                 }
 
-            },this.getClass().getName()+".Tplayer"); // The name of the Thread ends with Tplayer.
+            }, this.getClass().getName() + ".Tplayer"); // The name of the Thread ends with Tplayer.
 
             playerThread.start();
         }
     }
 
 
-    private AudioInputStream getNextStreamFromPlayList() throws IOException {
-        log.debug("Player {} - getNextStreamFromPlayList : playlist count={} playlist index=",this,playList.getSize(),playList.getIndex());
+    private AudioInputStream getNextStreamFromPlayList() throws IOException, UnsupportedAudioFileException {
+        log.debug("Player {} - getNextStreamFromPlayList : playlist count={} playlist index=", this, playList.getSize(), playList.getIndex());
         File file = playList.getNextAudioFile();
         if (file != null) {
-            log.debug("Picking from play list : file {}.",file.getAbsolutePath());
+            log.debug("Picking from play list : file {}.", file.getAbsolutePath());
             return getAudioInputStream(file);
         } else {
             log.debug("Nothing picked from playlist.");
@@ -357,7 +370,7 @@ public class JavaPlayer implements Player {
         }
     }
 
-    private AudioInputStream getCurrentStreamFromPlayList() throws IOException {
+    private AudioInputStream getCurrentStreamFromPlayList() throws IOException, UnsupportedAudioFileException {
         File file = playList.getCurrentAudioFile();
         if (file != null) {
             return getAudioInputStream(file);
@@ -376,10 +389,10 @@ public class JavaPlayer implements Player {
         for (PlayerListener listener : listeners) {
             switch (event) {
                 case BEGIN:
-                    listener.onBegin(index,currentFile);
+                    listener.onBegin(index, currentFile);
                     break;
                 case END:
-                    listener.onEnd(index,currentFile);
+                    listener.onEnd(index, currentFile);
                     break;
                 case FINISHED:
                     listener.onFinished();
@@ -412,13 +425,44 @@ public class JavaPlayer implements Player {
     }
 
 
+
+    /**
+     * Attempt to set the global gain (volume ish) for the play back. If the
+     * control is not supported this method has no effect. 1.0 will set maximum
+     * gain, 0.0 minimum gain
+     *
+     * @param gain The gain value
+     */
     public void setGain(float gain) {
+        if (gain != -1) {
+            if ((gain < 0) || (gain > 1)) {
+                throw new IllegalArgumentException("Volume must be between 0.0 and 1.0");
+            }
+        }
 
+        if (dataLine == null) {
+            return;
+        }
+
+        try {
+            FloatControl control = (FloatControl) dataLine.getControl(FloatControl.Type.MASTER_GAIN);
+            if (gain == -1) {
+                control.setValue(0);
+            } else {
+                float max = control.getMaximum();
+                float min = control.getMinimum(); // negative values all seem to be zero?
+                float range = max - min;
+
+                control.setValue(min + (range * gain));
+            }
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException(e);
+        }
     }
-
 
     public void close() {
-        // TODO Auto-generated method stub
-
+        stop();
+        stopLine();
+        state.set(State.CLOSED);
     }
-} // Play
+}

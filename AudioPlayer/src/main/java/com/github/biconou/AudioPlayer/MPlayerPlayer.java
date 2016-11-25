@@ -36,8 +36,10 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.SourceDataLine;
-import javax.sound.sampled.spi.AudioFileReader;
 
+import com.github.biconou.AudioPlayer.api.PlayList;
+import com.github.biconou.AudioPlayer.api.Player;
+import com.github.biconou.AudioPlayer.api.PlayerListener;
 import org.slf4j.LoggerFactory;
 
 
@@ -61,7 +63,7 @@ public class MPlayerPlayer implements Player {
 
 
 	/* (non-Javadoc)
-	 * @see com.github.biconou.AudioPlayer.Player#getState()
+	 * @see com.github.biconou.AudioPlayer.api.Player#getState()
 	 */
 	public State getState() {
 		return state.get();
@@ -310,14 +312,14 @@ public class MPlayerPlayer implements Player {
 */
 
 	/* (non-Javadoc)
-	 * @see com.github.biconou.AudioPlayer.Player#setPlayList(com.github.biconou.AudioPlayer.PlayList)
+	 * @see com.github.biconou.AudioPlayer.api.Player#setPlayList(com.github.biconou.AudioPlayer.api.PlayList)
 	 */
 	public void setPlayList(PlayList playList) {
 		this.playList = playList;
 	}
 
 	/* (non-Javadoc)
-	 * @see com.github.biconou.AudioPlayer.Player#registerListener(com.github.biconou.AudioPlayer.PlayerListener)
+	 * @see com.github.biconou.AudioPlayer.api.Player#registerListener(com.github.biconou.AudioPlayer.api.PlayerListener)
 	 */
 	public void registerListener(PlayerListener listener) {
 		listeners.add(listener);
@@ -372,7 +374,7 @@ public class MPlayerPlayer implements Player {
 */
 
 	/* (non-Javadoc)
-	 * @see com.github.biconou.AudioPlayer.Player#stop()
+	 * @see com.github.biconou.AudioPlayer.api.Player#stop()
 	 */
 	public void stop() {
 		try {
@@ -386,7 +388,7 @@ public class MPlayerPlayer implements Player {
 	}
 
 	/* (non-Javadoc)
-	 * @see com.github.biconou.AudioPlayer.Player#pause()
+	 * @see com.github.biconou.AudioPlayer.api.Player#pause()
 	 */
 	public void pause() {
 		try {
@@ -400,7 +402,7 @@ public class MPlayerPlayer implements Player {
 	}
 
 	/* (non-Javadoc)
-	 * @see com.github.biconou.AudioPlayer.Player#play()
+	 * @see com.github.biconou.AudioPlayer.api.Player#play()
 	 */
 	public void play() throws NothingToPlayException {
 

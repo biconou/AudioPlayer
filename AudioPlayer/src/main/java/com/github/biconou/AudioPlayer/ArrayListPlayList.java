@@ -1,5 +1,7 @@
 package com.github.biconou.AudioPlayer;
 
+import com.github.biconou.AudioPlayer.api.PlayList;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +21,9 @@ public class ArrayListPlayList implements PlayList {
 			throw new Exception("File "+path+" is not readable.");
 		}
 		this.files.add(file);
+		if (index == -1) {
+			index = 0;
+		}
 	}
 
 	@Override
@@ -48,7 +53,11 @@ public class ArrayListPlayList implements PlayList {
 	}
 
 	public void reset() {
-		index = -1;
+		if (files.size() == 0) {
+			index = -1;
+		} else {
+			index = 0;
+		}
 	}
 
 }

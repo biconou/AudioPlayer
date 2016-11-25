@@ -1,5 +1,6 @@
 package com.github.biconou.AudioPlayer;
 
+import com.github.biconou.AudioPlayer.api.Player;
 import org.junit.Test;
 
 import javax.sound.sampled.AudioSystem;
@@ -154,6 +155,94 @@ public class TestJavaPlayer {
         Thread.sleep(30000);
         playList.reset();
         player.play();
+        Thread.sleep(30000);
+    }
+
+    @Test
+    public void playFlac() throws Exception {
+
+        ArrayListPlayList playList = new ArrayListPlayList();
+        playList.addAudioFile(resourcesBasePath()+"/Music/_DIR_ Céline Frisch- Café Zimmermann - Bach- Goldberg Variations, Canons [Disc 1]/01 - Bach- Goldberg Variations, BWV 988 - Aria.flac");
+
+        Player player = new JavaPlayer(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
+        player.registerListener(new ConsoleLogPlayerListener());
+        player.setPlayList(playList);
+        player.play();
+        Thread.sleep(30000);
+    }
+
+    @Test
+    public void playMP3() throws Exception {
+
+        ArrayListPlayList playList = new ArrayListPlayList();
+        playList.addAudioFile(resourcesBasePath()+"/Music/_DIR_ Sixteen Horsepower/_DIR_ Sackcloth 'n' Ashes/Sixteen Horsepower - 01 I Seen What I Saw.mp3");
+
+        Player player = new JavaPlayer(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
+        player.registerListener(new ConsoleLogPlayerListener());
+        player.setPlayList(playList);
+        player.play();
+        Thread.sleep(30000);
+    }
+
+    @Test
+    public void playOGG() throws Exception {
+
+        ArrayListPlayList playList = new ArrayListPlayList();
+        playList.addAudioFile(resourcesBasePath()+"/OGG/01 - Sonata Violin & Cello I. Allegro.ogg");
+
+        Player player = new JavaPlayer(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
+        player.registerListener(new ConsoleLogPlayerListener());
+        player.setPlayList(playList);
+        player.play();
+        Thread.sleep(30000);
+    }
+
+    @Test
+    public void playHD() throws Exception {
+
+        ArrayListPlayList playList = new ArrayListPlayList();
+        playList.addAudioFile(resourcesBasePath()+"/WAV/naim-test-2-wav-24-96000.wav");
+
+        Player player = new JavaPlayer(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
+        player.registerListener(new ConsoleLogPlayerListener());
+        player.setPlayList(playList);
+        player.play();
+        Thread.sleep(30000);
+    }
+
+    @Test
+    public void playFlacHD() throws Exception {
+
+        ArrayListPlayList playList = new ArrayListPlayList();
+        playList.addAudioFile(resourcesBasePath()+"/Orfeo/01-01-Toccata-SMR.flac");
+
+        Player player = new JavaPlayer(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
+        player.registerListener(new ConsoleLogPlayerListener());
+        player.setPlayList(playList);
+        player.play();
+        while(1==1)
+        Thread.sleep(30000);
+    }
+
+    @Test
+    public void gain() throws Exception {
+        ArrayListPlayList playList = new ArrayListPlayList();
+        playList.addAudioFile(resourcesBasePath()+"/Music/_DIR_ Sixteen Horsepower/_DIR_ Sackcloth 'n' Ashes/Sixteen Horsepower - 01 I Seen What I Saw.mp3");
+
+        Player player = new JavaPlayer(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
+        player.registerListener(new ConsoleLogPlayerListener());
+        player.setPlayList(playList);
+        player.play();
+        Thread.sleep(2000);
+        player.setGain(0);
+        Thread.sleep(2000);
+        player.setGain((float)0.3);
+        Thread.sleep(2000);
+        player.setGain((float)0.5);
+        Thread.sleep(2000);
+        player.setGain((float)0.8);
+        Thread.sleep(2000);
+        player.setGain((float)1);
         Thread.sleep(30000);
     }
 

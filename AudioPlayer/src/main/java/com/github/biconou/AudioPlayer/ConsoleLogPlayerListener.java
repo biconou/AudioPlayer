@@ -1,11 +1,9 @@
 package com.github.biconou.AudioPlayer;
 
-import javax.sound.sampled.AudioInputStream;
+import com.github.biconou.AudioPlayer.api.PlayerListener;
+
 import java.io.File;
 
-/**
- * Created by remi on 17/09/16.
- */
 public class ConsoleLogPlayerListener implements PlayerListener {
 
     @Override
