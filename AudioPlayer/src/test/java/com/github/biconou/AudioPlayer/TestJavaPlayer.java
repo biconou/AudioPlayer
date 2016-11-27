@@ -159,6 +159,21 @@ public class TestJavaPlayer {
     }
 
     @Test
+    public void playGapLess() throws Exception {
+
+        ArrayListPlayList playList = new ArrayListPlayList();
+        playList.addAudioFile(resourcesBasePath()+"/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 1.flac");
+        playList.addAudioFile(resourcesBasePath()+"/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 2.flac");
+
+        //Player player = new JavaPlayer(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
+        Player player = new JavaPlayer("CUBE [plughw:2,0]");
+        player.registerListener(new ConsoleLogPlayerListener());
+        player.setPlayList(playList);
+        player.play();
+        Thread.sleep(30000);
+    }
+
+    @Test
     public void playFlac() throws Exception {
 
         ArrayListPlayList playList = new ArrayListPlayList();
@@ -203,7 +218,9 @@ public class TestJavaPlayer {
         ArrayListPlayList playList = new ArrayListPlayList();
         playList.addAudioFile(resourcesBasePath()+"/WAV/naim-test-2-wav-24-96000.wav");
 
-        Player player = new JavaPlayer(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
+        //Player player = new JavaPlayer(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
+        Player player = new JavaPlayer("CUBE [plughw:2,0]");
+
         player.registerListener(new ConsoleLogPlayerListener());
         player.setPlayList(playList);
         player.play();
@@ -216,7 +233,9 @@ public class TestJavaPlayer {
         ArrayListPlayList playList = new ArrayListPlayList();
         playList.addAudioFile(resourcesBasePath()+"/Orfeo/01-01-Toccata-SMR.flac");
 
-        Player player = new JavaPlayer(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
+        //Player player = new JavaPlayer(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
+        Player player = new JavaPlayer("CUBE [plughw:2,0]");
+
         player.registerListener(new ConsoleLogPlayerListener());
         player.setPlayList(playList);
         player.play();

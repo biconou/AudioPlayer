@@ -17,10 +17,7 @@ import javax.sound.sampled.*;
 import javax.sound.sampled.spi.AudioFileReader;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 
@@ -94,6 +91,16 @@ public class JavaPlayer implements Player {
 
     public JavaPlayer(Mixer mixer) {
         init(mixer);
+    }
+
+
+    public JavaPlayer(String mixerName) {
+        Mixer.Info[] infos = AudioSystem.getMixerInfo();
+        Arrays.stream(infos).forEach(info -> {
+            if (info.getName().equals(mixerName)) {
+                init(AudioSystem.getMixer(info));
+            }
+        });
     }
 
 
