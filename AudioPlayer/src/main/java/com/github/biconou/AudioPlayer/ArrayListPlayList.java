@@ -20,6 +20,13 @@ public class ArrayListPlayList implements PlayList {
 		if (!file.canRead()) {
 			throw new Exception("File "+path+" is not readable.");
 		}
+        addAudioFile(file);
+	}
+
+	public void addAudioFile(File file) {
+		if (file == null) {
+			throw new RuntimeException("Can not add null file");
+		}
 		this.files.add(file);
 		if (index == -1) {
 			index = 0;
