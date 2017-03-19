@@ -4,6 +4,7 @@ package com.github.biconou.AudioPlayer;
 import com.github.biconou.AudioPlayer.api.PlayList;
 import com.github.biconou.AudioPlayer.api.Player;
 import com.github.biconou.AudioPlayer.api.PlayerListener;
+import com.github.biconou.AudioPlayer.api.PlayingInfos;
 import com.sun.media.sound.WaveExtensibleFileReader;
 import com.sun.media.sound.WaveFileReader;
 import com.sun.media.sound.WaveFloatFileReader;
@@ -79,6 +80,8 @@ public class JavaPlayer implements Player {
 
     private final AtomicReference<State> state = new AtomicReference<State>(State.CLOSED);
 
+    private DefaultPlayingInfosImpl infos = new DefaultPlayingInfosImpl();
+
     PlayList playList = null;
     SourceDataLine dataLine = null;
     List<PlayerListener> listeners = new ArrayList<PlayerListener>();
@@ -95,8 +98,7 @@ public class JavaPlayer implements Player {
 
 
     public JavaPlayer(String mixerName) {
-        Mixer.Info[] infos = AudioSystem.getMixerInfo();
-        Arrays.stream(infos).forEach(info -> {
+        Arrays.stream(AudioSystemUtils.listAllMixers()).forEach(info -> {
             if (info.getName().equals(mixerName)) {
                 init(AudioSystem.getMixer(info));
             }
@@ -247,6 +249,12 @@ public class JavaPlayer implements Player {
 
     public void setPos(int posInSeconds) {
         this.pos = posInSeconds;
+        infos.currentPosition = posInSeconds;
+    }
+
+    @Override
+    public PlayingInfos getPlayingInfos() {
+        return infos;
     }
 
     /**
@@ -270,9 +278,8 @@ public class JavaPlayer implements Player {
 
             // start a thread that plays the audio streams from the play list.
             Thread playerThread = new Thread(() -> {
-                AudioInputStream audioStreamToPlay = null;
+                AudioInputStream audioStreamToPlay;
                 try {
-                    // Getting the next stream here returns the first one in play list.
                     audioStreamToPlay = getCurrentStreamFromPlayList();
                 } catch (IOException|UnsupportedAudioFileException e) {
                     throw new RuntimeException(e);
@@ -280,6 +287,9 @@ public class JavaPlayer implements Player {
                 while (audioStreamToPlay != null) {
 
                     state.set(State.PLAYING);
+                    infos.currentPosition = 0;
+                    // TODO set current length
+                    infos.currentLength = 0;
                     notifyEvent(PlayerListener.Event.BEGIN);
 
                     // Audio format provides information like sample rate, size, channels.
@@ -315,9 +325,10 @@ public class JavaPlayer implements Player {
                             log.debug("dataline started");
                         }
 
-                        final int bufferSize = (int) audioFormat.getSampleRate() * audioFormat.getFrameSize();
-                        byte[] buffer = new byte[bufferSize];
-                        int bytes = audioStreamToPlay.read(buffer, 0, bufferSize);
+                        // Start to read the audio Stream second by second.
+                        final int bufSizeForOneSecond = (int) audioFormat.getSampleRate() * audioFormat.getFrameSize();
+                        byte[] buffer = new byte[bufSizeForOneSecond];
+                        int bytes = audioStreamToPlay.read(buffer, 0, bufSizeForOneSecond);
                         while (bytes != -1) {
                             if (mustStop) {
                                 bytes = -1;
@@ -328,13 +339,16 @@ public class JavaPlayer implements Player {
                                 if (pos > -1) {
                                     audioStreamToPlay = getCurrentStreamFromPlayList();
                                     for (int i = 0; i < pos; i++) {
-                                        bytes = audioStreamToPlay.read(buffer, 0, bufferSize);
+                                        bytes = audioStreamToPlay.read(buffer, 0, bufSizeForOneSecond);
                                     }
-                                    bytes = audioStreamToPlay.read(buffer, 0, bufferSize);
                                     pos = -1;
+                                    bytes = audioStreamToPlay.read(buffer, 0, bufSizeForOneSecond);
                                 }
+                                // Write audio data to the line;
                                 dataLine.write(buffer, 0, bytes);
-                                bytes = audioStreamToPlay.read(buffer, 0, bufferSize);
+                                // Position is now one second ahead
+                                infos.currentPosition += 1;
+                                bytes = audioStreamToPlay.read(buffer, 0, bufSizeForOneSecond);
                             }
                         }
                     } catch (Exception e) {

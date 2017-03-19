@@ -265,4 +265,32 @@ public class TestJavaPlayer {
         Thread.sleep(30000);
     }
 
+    @Test
+    public void movePosition() throws Exception {
+
+        ArrayListPlayList playList = new ArrayListPlayList();
+        //playList.addAudioFile(resourcesBasePath()+"/Music2/metallica/Fade to Black.mp3");
+        playList.addAudioFile(resourcesBasePath()+"/Music2/metallica/Fade to Black.flac");
+
+        Player player = new JavaPlayer();
+
+        player.registerListener(new ConsoleLogPlayerListener());
+        player.setPlayList(playList);
+        player.play();
+        Thread.sleep(10000);
+        System.out.println("Current position = " + player.getPlayingInfos().currentAudioPositionInSeconds());
+        player.setPos(360);
+        Thread.sleep(1000);
+        System.out.println("Current position = " + player.getPlayingInfos().currentAudioPositionInSeconds());
+        Thread.sleep(10000);
+        System.out.println("Current position = " + player.getPlayingInfos().currentAudioPositionInSeconds());
+        player.setPos(60);
+        Thread.sleep(1000);
+        System.out.println("Current position = " + player.getPlayingInfos().currentAudioPositionInSeconds());
+
+        while(1==1) {
+            Thread.sleep(30000);
+        }
+    }
+
 }

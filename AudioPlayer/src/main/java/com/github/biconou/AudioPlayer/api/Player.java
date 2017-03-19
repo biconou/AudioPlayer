@@ -45,4 +45,6 @@ public interface Player {
 
 	void setPos(int i);
 
+	PlayingInfos getPlayingInfos();
+
 }

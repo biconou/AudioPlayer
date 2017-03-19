@@ -40,6 +40,7 @@ import javax.sound.sampled.SourceDataLine;
 import com.github.biconou.AudioPlayer.api.PlayList;
 import com.github.biconou.AudioPlayer.api.Player;
 import com.github.biconou.AudioPlayer.api.PlayerListener;
+import com.github.biconou.AudioPlayer.api.PlayingInfos;
 import org.slf4j.LoggerFactory;
 
 
@@ -564,6 +565,11 @@ public class MPlayerPlayer implements Player {
 	@Override
 	public void setPos(int i) {
 
+	}
+
+	@Override
+	public PlayingInfos getPlayingInfos() {
+		return null;
 	}
 
 	/**

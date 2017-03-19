@@ -1,6 +1,7 @@
 package com.github.biconou;
 
 import com.github.biconou.AudioPlayer.ArrayListPlayList;
+import com.github.biconou.AudioPlayer.AudioSystemUtils;
 import com.github.biconou.AudioPlayer.JavaPlayer;
 import com.github.biconou.AudioPlayer.api.PlayList;
 import com.github.biconou.AudioPlayer.api.Player;
@@ -10,8 +11,10 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.sound.sampled.AudioSystem;
 import javax.swing.plaf.synth.SynthTextAreaUI;
 import java.io.*;
+import java.util.Arrays;
 
 public class Test {
 
@@ -32,15 +35,26 @@ public class Test {
         playList.addAudioFile(tmpFile);
     }
 
+    /**
+     * Main méthod.
+     *
+     * Plays some audio samples.
+     *
+     * @param args
+     */
     public static void main(String[] args) {
-
-
 
         ArrayListPlayList playList = new ArrayListPlayList();
         try {
 
-           //addToList("/samples/moog_16_44100.wav",".wav",playList);
-            //addToList("/samples/moog_16_44100.flac",".flac",playList);
+            log.info("List of all available audion mixers");
+            Arrays.stream(AudioSystemUtils.listAllMixers()).forEach(info -> {
+                log.info("{} - {}",info.getName(),info.getDescription());
+            });
+
+
+            addToList("/samples/moog_16_44100.wav",".wav",playList);
+            addToList("/samples/moog_16_44100.flac",".flac",playList);
             addToList("/samples/moog_16_44100_192.mp3",".mp3",playList);
 
             Player player = new JavaPlayer();
