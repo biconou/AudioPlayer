@@ -3,9 +3,9 @@ package com.github.biconou.AudioPlayer;
 import com.github.biconou.AudioPlayer.api.Player;
 import org.junit.Test;
 
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Line;
-import javax.sound.sampled.Mixer;
+import javax.sound.sampled.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 
 public class TestJavaPlayer {
@@ -30,20 +30,20 @@ public class TestJavaPlayer {
     }
 
 
- /*   @Test
-    public void playSingleWav() throws IOException, UnsupportedAudioFileException, LineUnavailableException {
+    @Test
+    public void playSingle() throws IOException, UnsupportedAudioFileException, LineUnavailableException {
 
         File file = null;
         AudioInputStream audioInputStream = null;
 
-        //file = new File(resourcesBasePath()+"/WAV/naim-test-2-wav-16-44100.wav");
-        file = new File(resourcesBasePath()+"/WAV/naim-test-2-wav-24-96000.wav");
-        audioInputStream = JavaPlayer.getAudioInputStream(file);
+        file = new File(resourcesBasePath()+"/count/count.mp3");
+        JavaPlayer javaPlayer = new JavaPlayer();
+        audioInputStream = javaPlayer.getAudioInputStream(file);
         AudioFormat audioFormat = audioInputStream.getFormat();
 
         // Choose a mixer
         Mixer.Info[] infos = AudioSystem.getMixerInfo();
-        Mixer mixer = AudioSystem.getMixer(infos[3]);
+        Mixer mixer = AudioSystem.getMixer(infos[0]);
 
         DataLine.Info info = new DataLine.Info(SourceDataLine.class, audioFormat);
         if (!AudioSystem.isLineSupported(info)) {
@@ -62,17 +62,36 @@ public class TestJavaPlayer {
         dataLine.start();
 
         // Buffer contains 1 second of music.
+        System.out.println("Frame rate : "+audioFormat.getFrameRate());
+        System.out.println("Frame size : "+audioFormat.getFrameSize());
         final int bufferSize = (int) audioFormat.getFrameRate() * audioFormat.getFrameSize();
+        System.out.println(bufferSize);
         byte[] buffer = new byte[bufferSize];
         // Skip 5 seconds of music
-        audioInputStream.skip(5 * bufferSize);
+        skip(5,audioInputStream,buffer,bufferSize);
         int bytes = audioInputStream.read(buffer, 0, bufferSize);
         while (bytes != -1) {
-                dataLine.write(buffer, 0, bytes);
-                bytes = audioInputStream.read(buffer, 0, bufferSize);
+            dataLine.write(buffer, 0, bytes);
+            bytes = audioInputStream.read(buffer, 0, bufferSize);
             System.out.println(bytes);
         }
-    } */
+    }
+
+    private void skip(int seconds,AudioInputStream stream,byte[] buffer,int bytesPerSecond) throws IOException {
+        for (int i=0;i<seconds;i++) {
+            readOneSecond(stream,buffer,bytesPerSecond);
+        }
+    }
+
+    private int readOneSecond(AudioInputStream stream,byte[] buffer,int bytesPerSecond) throws IOException {
+        int bytes = 0;
+        int totalBytesRead = 0;
+        while (bytes != -1 && totalBytesRead < bytesPerSecond) {
+            bytes = stream.read(buffer, totalBytesRead, bytesPerSecond - totalBytesRead);
+            totalBytesRead += bytes;
+        }
+        return totalBytesRead;
+    }
 
 
     @Test

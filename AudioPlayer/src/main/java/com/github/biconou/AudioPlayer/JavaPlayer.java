@@ -326,12 +326,11 @@ public class JavaPlayer implements Player {
                                 if (pos > -1) {
                                     log.debug("Go to position {} seconds : ie skip {} bytes.",pos,pos*bytesPerSecond);
                                     audioStreamToPlay = getCurrentStreamFromPlayList();
-                                    for (int i = 0; i < pos; i++) {
-                                        audioStreamToPlay.read(buffer, 0, bytesPerSecond);
-                                    }
+                                    skip(pos,audioStreamToPlay,buffer,bytesPerSecond);
                                     pos = -1;
                                 }
-                                int bytes = audioStreamToPlay.read(buffer, 0, bytesPerSecond);
+                                //int bytes = audioStreamToPlay.read(buffer, 0, bytesPerSecond);
+                                int bytes = readOneSecond(audioStreamToPlay,buffer,bytesPerSecond);
                                 if (bytes > -1) {
                                     // Write audio data to the line;
                                     dataLine.write(buffer, 0, bytes);
@@ -368,6 +367,30 @@ public class JavaPlayer implements Player {
             playerThread.start();
         }
     }
+
+    private void skip(int seconds,AudioInputStream stream,byte[] buffer,int bytesPerSecond) throws IOException {
+        for (int i=0;i<seconds;i++) {
+            readOneSecond(stream,buffer,bytesPerSecond);
+        }
+    }
+
+    private int readOneSecond(AudioInputStream stream,byte[] buffer,int bytesPerSecond) throws IOException {
+        int bytes = 0;
+        int totalBytesRead = 0;
+        while (totalBytesRead < bytesPerSecond) {
+            bytes = stream.read(buffer, totalBytesRead, bytesPerSecond - totalBytesRead);
+            if (totalBytesRead == 0 && bytes == -1) {
+                return -1;
+            }
+            if (bytes != -1) {
+                totalBytesRead += bytes;
+            } else {
+                return totalBytesRead;
+            }
+        }
+        return totalBytesRead;
+    }
+
 
     private void pickADataLine(AudioFormat audioFormat) throws LineUnavailableException {
         if (previousUsedAudioFormat == null || !audioFormat.toString().equals(previousUsedAudioFormat.toString())) {
