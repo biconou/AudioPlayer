@@ -270,45 +270,54 @@ public class TestJavaPlayer {
 
         ArrayListPlayList playList = new ArrayListPlayList();
         //playList.addAudioFile(resourcesBasePath()+"/Music2/metallica/Fade to Black.mp3");
-        playList.addAudioFile(resourcesBasePath()+"/count/count.wav");
+        playList.addAudioFile(resourcesBasePath()+"/count/count.mp3");
 
         Player player = new JavaPlayer();
 
         player.registerListener(new ConsoleLogPlayerListener());
         player.setPlayList(playList);
+
         player.play();
         Thread.sleep(500);
+        player.pause();Thread.sleep(3000);player.play();
+
         player.setPos(1);
         Thread.sleep(500);
+        player.pause();Thread.sleep(3000);player.play();
+
         player.setPos(2);
         Thread.sleep(500);
+        player.pause();Thread.sleep(3000);player.play();
+
         player.setPos(3);
         Thread.sleep(500);
+        player.pause();Thread.sleep(3000);player.play();
+
         player.setPos(4);
         Thread.sleep(500);
+        player.pause();Thread.sleep(3000);player.play();
+
         player.setPos(5);
         Thread.sleep(500);
+        player.pause();Thread.sleep(3000);player.play();
+
         player.setPos(6);
         Thread.sleep(500);
+        player.pause();Thread.sleep(3000);player.play();
+
         player.setPos(7);
         Thread.sleep(500);
+        player.pause();Thread.sleep(3000);player.play();
+
         player.setPos(8);
         Thread.sleep(500);
+        player.pause();Thread.sleep(3000);player.play();
+
         player.setPos(9);
         Thread.sleep(500);
+        player.pause();Thread.sleep(3000);player.play();
 
-       /* System.out.println("skip to 2 seconds");
-        player.setPos(8);
-        Thread.sleep(500);
-*/
-    /*    System.out.println("skip to 5 seconds");
-        player.setPos(5);
-        Thread.sleep(500);
 
-        System.out.println("skip to 9 seconds");
-        player.setPos(9);
-        Thread.sleep(500);
-        */
 
         while(1==1) {
             Thread.sleep(30000);
