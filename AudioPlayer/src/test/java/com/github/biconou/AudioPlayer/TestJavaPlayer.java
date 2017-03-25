@@ -270,23 +270,45 @@ public class TestJavaPlayer {
 
         ArrayListPlayList playList = new ArrayListPlayList();
         //playList.addAudioFile(resourcesBasePath()+"/Music2/metallica/Fade to Black.mp3");
-        playList.addAudioFile(resourcesBasePath()+"/Music2/metallica/Fade to Black.flac");
+        playList.addAudioFile(resourcesBasePath()+"/count/count.wav");
 
         Player player = new JavaPlayer();
 
         player.registerListener(new ConsoleLogPlayerListener());
         player.setPlayList(playList);
         player.play();
-        Thread.sleep(10000);
-        System.out.println("Current position = " + player.getPlayingInfos().currentAudioPositionInSeconds());
-        player.setPos(360);
-        Thread.sleep(1000);
-        System.out.println("Current position = " + player.getPlayingInfos().currentAudioPositionInSeconds());
-        Thread.sleep(10000);
-        System.out.println("Current position = " + player.getPlayingInfos().currentAudioPositionInSeconds());
-        player.setPos(60);
-        Thread.sleep(1000);
-        System.out.println("Current position = " + player.getPlayingInfos().currentAudioPositionInSeconds());
+        Thread.sleep(500);
+        player.setPos(1);
+        Thread.sleep(500);
+        player.setPos(2);
+        Thread.sleep(500);
+        player.setPos(3);
+        Thread.sleep(500);
+        player.setPos(4);
+        Thread.sleep(500);
+        player.setPos(5);
+        Thread.sleep(500);
+        player.setPos(6);
+        Thread.sleep(500);
+        player.setPos(7);
+        Thread.sleep(500);
+        player.setPos(8);
+        Thread.sleep(500);
+        player.setPos(9);
+        Thread.sleep(500);
+
+       /* System.out.println("skip to 2 seconds");
+        player.setPos(8);
+        Thread.sleep(500);
+*/
+    /*    System.out.println("skip to 5 seconds");
+        player.setPos(5);
+        Thread.sleep(500);
+
+        System.out.println("skip to 9 seconds");
+        player.setPos(9);
+        Thread.sleep(500);
+        */
 
         while(1==1) {
             Thread.sleep(30000);
