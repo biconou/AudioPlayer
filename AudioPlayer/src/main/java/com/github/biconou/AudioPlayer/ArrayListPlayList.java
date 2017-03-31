@@ -59,12 +59,4 @@ public class ArrayListPlayList implements PlayList {
 		return index;
 	}
 
-	public void reset() {
-		if (files.size() == 0) {
-			index = -1;
-		} else {
-			index = 0;
-		}
-	}
-
 }

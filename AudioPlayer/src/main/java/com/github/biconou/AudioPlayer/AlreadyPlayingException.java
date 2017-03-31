@@ -1,6 +1,6 @@
 package com.github.biconou.AudioPlayer;
 
 @SuppressWarnings("serial")
-public class AllreadyPlayingException extends RuntimeException {
+public class AlreadyPlayingException extends RuntimeException {
 
 }

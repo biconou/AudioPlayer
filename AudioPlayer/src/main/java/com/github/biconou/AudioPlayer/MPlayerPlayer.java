@@ -552,6 +552,11 @@ public class MPlayerPlayer implements Player {
 
 	}
 
+	@Override
+	public float getGain() {
+		return 0;
+	}
+
 	public void close() {
 
 		mPlayerStandardOutputBuffer = null;

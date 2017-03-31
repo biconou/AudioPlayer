@@ -5,7 +5,5 @@ package com.github.biconou.AudioPlayer.api;
  */
 public interface PlayingInfos {
 
-    int currentAudioLengthInSeconds();
-
     int currentAudioPositionInSeconds();
 }

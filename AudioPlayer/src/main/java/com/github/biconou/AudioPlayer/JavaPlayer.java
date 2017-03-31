@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class JavaPlayer implements Player {
 
+    public static final float DEFAULT_GAIN_VALUE = 0.5f;
     private static Logger log = LoggerFactory.getLogger(JavaPlayer.class);
 
     public static AudioFormat PCM_SIGNED_44100_16_LE = new AudioFormat(
@@ -83,7 +84,6 @@ public class JavaPlayer implements Player {
     private DefaultPlayingInfosImpl infos = new DefaultPlayingInfosImpl();
 
     PlayList playList = null;
-    SourceDataLine dataLine = null;
     List<PlayerListener> listeners = new ArrayList<PlayerListener>();
     Boolean mustPause = Boolean.FALSE;
     Boolean mustStop = Boolean.FALSE;
@@ -91,6 +91,9 @@ public class JavaPlayer implements Player {
     AudioFormat previousUsedAudioFormat = null;
     private Mixer mixer;
     private Map<String, AudioFormat> supportedFormats = new HashMap<>();
+    private SourceDataLineHolder dataLineHolder = null;
+    float gain = DEFAULT_GAIN_VALUE;
+
 
     public JavaPlayer(Mixer mixer) {
         init(mixer);
@@ -193,7 +196,11 @@ public class JavaPlayer implements Player {
         return state.get();
     }
 
+
     public void setPlayList(PlayList playList) {
+        if (isPlaying()) {
+            stop();
+        }
         this.playList = playList;
     }
 
@@ -202,22 +209,11 @@ public class JavaPlayer implements Player {
         listeners.add(listener);
     }
 
-
-    /**
-     * Returns whether the player is playing music.
-     *
-     * @return
-     */
     @Override
     public boolean isPlaying() {
         return getState().equals(State.PLAYING);
     }
 
-    /**
-     * Returns whether the player is paused at the moment.
-     *
-     * @return
-     */
     @Override
     public boolean isPaused() {
         return getState().equals(State.PAUSED);
@@ -225,8 +221,8 @@ public class JavaPlayer implements Player {
 
     public void stop() {
         if (!getState().equals(State.CLOSED)) {
-            notifyEvent(PlayerListener.Event.STOP);
             if (isPlaying() || isPaused()) {
+                notifyEvent(PlayerListener.Event.STOP);
                 log.debug("Player {} : stop.", this);
                 this.mustStop = Boolean.TRUE;
             }
@@ -243,7 +239,6 @@ public class JavaPlayer implements Player {
         state.set(State.STOPPED);
     }
 
-
     public void pause() {
         mustPause = Boolean.TRUE;
         notifyEvent(PlayerListener.Event.PAUSE);
@@ -259,12 +254,7 @@ public class JavaPlayer implements Player {
         return infos;
     }
 
-    /**
-     * Starts playing or resume playing if the player was paused.
-     *
-     * @throws NothingToPlayException
-     * @throws AllreadyPlayingException
-     */
+    @Override
     public void play() throws NothingToPlayException {
 
         log.debug("Player {} : Play", this);
@@ -275,7 +265,7 @@ public class JavaPlayer implements Player {
         }
 
         if (isPlaying()) {
-            throw new AllreadyPlayingException();
+            throw new AlreadyPlayingException();
         }
 
 
@@ -297,10 +287,7 @@ public class JavaPlayer implements Player {
                 byte[] buffer = null;
                 while (audioStreamToPlay != null) {
 
-                    state.set(State.PLAYING);
                     infos.currentPosition = 0;
-                    // TODO set current length
-                    infos.currentLength = 0;
                     notifyEvent(PlayerListener.Event.BEGIN);
 
                     try {
@@ -332,8 +319,9 @@ public class JavaPlayer implements Player {
                                 //int bytes = audioStreamToPlay.read(buffer, 0, bytesPerSecond);
                                 int bytes = readOneSecond(audioStreamToPlay,buffer,bytesPerSecond);
                                 if (bytes > -1) {
+                                    state.set(State.PLAYING);
                                     // Write audio data to the line;
-                                    dataLine.write(buffer, 0, bytes);
+                                    dataLineHolder.getDataLine().write(buffer, 0, bytes);
                                     // Position is now one second ahead
                                     infos.currentPosition += 1;
                                 } else {
@@ -354,7 +342,7 @@ public class JavaPlayer implements Player {
                             audioStreamToPlay = getNextStreamFromPlayList();
                             if (audioStreamToPlay == null) {
                                 notifyEvent(PlayerListener.Event.FINISHED);
-                                doStop();
+                                doClose();
                             }
                         } catch (IOException|UnsupportedAudioFileException e) {
                             throw new RuntimeException(e);
@@ -368,14 +356,27 @@ public class JavaPlayer implements Player {
         }
     }
 
-    private void skip(int seconds,AudioInputStream stream,byte[] buffer,int bytesPerSecond) throws IOException {
+    @Override
+    public void setGain(float gain) {
+        this.gain = gain;
+        if (dataLineHolder != null) {
+            dataLineHolder.setGain(gain);
+        }
+    }
+
+    @Override
+    public float getGain() {
+        return this.gain;
+    }
+
+    private void skip(int seconds, AudioInputStream stream, byte[] buffer, int bytesPerSecond) throws IOException {
         for (int i=0;i<seconds;i++) {
             readOneSecond(stream,buffer,bytesPerSecond);
         }
     }
 
     private int readOneSecond(AudioInputStream stream,byte[] buffer,int bytesPerSecond) throws IOException {
-        int bytes = 0;
+        int bytes;
         int totalBytesRead = 0;
         while (totalBytesRead < bytesPerSecond) {
             bytes = stream.read(buffer, totalBytesRead, bytesPerSecond - totalBytesRead);
@@ -398,9 +399,9 @@ public class JavaPlayer implements Player {
                 log.debug("The previously used audio format was different. We will start a new line.");
             }
             previousUsedAudioFormat = audioFormat;
-            if (dataLine != null) {
+            if (dataLineHolder != null && dataLineHolder.getDataLine() != null) {
                 log.debug("closing the current line.");
-                dataLine.close();
+                dataLineHolder.getDataLine().close();
             }
 
             DataLine.Info info = new DataLine.Info(SourceDataLine.class, audioFormat);
@@ -408,8 +409,9 @@ public class JavaPlayer implements Player {
                 throw new RuntimeException("Play.playAudioStream does not handle this type of audio on this system.");
             }
 
-            dataLine = (SourceDataLine) mixer.getLine(info);
+            SourceDataLine dataLine = (SourceDataLine) mixer.getLine(info);
             log.debug("A new line {} has been picked.", dataLine);
+            dataLineHolder = new SourceDataLineHolder(dataLine,gain);
 
             try {
                 dataLine.open(audioFormat);
@@ -474,62 +476,24 @@ public class JavaPlayer implements Player {
         }
     }
 
-
-    /**
-     *
-     */
     private void stopLine() {
-
-        if (dataLine != null) {
-            System.out.println("Play.playAudioStream draining line.");
-            // Continues data line I/O until its buffer is drained.
-            dataLine.drain();
-
-            System.out.println("Play.playAudioStream closing line.");
-            // Closes the data line, freeing any resources such as the audio device.
-            dataLine.close();
+        if (dataLineHolder.getDataLine() != null) {
+            dataLineHolder.getDataLine().drain();
+            dataLineHolder.getDataLine().close();
         }
     }
 
 
-
-    /**
-     * Attempt to set the global gain (volume ish) for the play back. If the
-     * control is not supported this method has no effect. 1.0 will set maximum
-     * gain, 0.0 minimum gain
-     *
-     * @param gain The gain value
-     */
-    public void setGain(float gain) {
-        if (gain != -1) {
-            if ((gain < 0) || (gain > 1)) {
-                throw new IllegalArgumentException("Volume must be between 0.0 and 1.0");
-            }
-        }
-
-        if (dataLine == null) {
-            return;
-        }
-
-        try {
-            FloatControl control = (FloatControl) dataLine.getControl(FloatControl.Type.MASTER_GAIN);
-            if (gain == -1) {
-                control.setValue(0);
-            } else {
-                float max = control.getMaximum();
-                float min = control.getMinimum(); // negative values all seem to be zero?
-                float range = max - min;
-
-                control.setValue(min + (range * gain));
-            }
-        } catch (IllegalArgumentException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
+    @Override
     public void close() {
-        stop();
+        doStop();
+        doClose();
+    }
+
+    private void doClose() {
         stopLine();
+        dataLineHolder = null;
+        gain = DEFAULT_GAIN_VALUE;
         state.set(State.CLOSED);
     }
 }
