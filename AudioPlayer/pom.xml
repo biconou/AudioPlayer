@@ -4,7 +4,7 @@
 
     <groupId>com.github.biconou</groupId>
     <artifactId>AudioPlayer</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1</version>
     <packaging>jar</packaging>
 
     <name>AudioPlayer</name>
