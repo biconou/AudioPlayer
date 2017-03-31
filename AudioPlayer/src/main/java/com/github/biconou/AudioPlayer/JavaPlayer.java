@@ -394,7 +394,7 @@ public class JavaPlayer implements Player {
 
 
     private void pickADataLine(AudioFormat audioFormat) throws LineUnavailableException {
-        if (previousUsedAudioFormat == null || !audioFormat.toString().equals(previousUsedAudioFormat.toString())) {
+        if (dataLineHolder == null || previousUsedAudioFormat == null || !audioFormat.toString().equals(previousUsedAudioFormat.toString())) {
             if (previousUsedAudioFormat != null) {
                 log.debug("The previously used audio format was different. We will start a new line.");
             }
