@@ -5,9 +5,9 @@ import com.github.biconou.AudioPlayer.api.Player;
 import junit.framework.Assert;
 import org.junit.Test;
 
-import javax.sound.sampled.*;
-import java.io.File;
-import java.io.IOException;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Line;
+import javax.sound.sampled.Mixer;
 import java.util.Arrays;
 
 public class TestJavaPlayer {
@@ -32,68 +32,6 @@ public class TestJavaPlayer {
     }
 
 
-    @Test
-    public void playSingle() throws IOException, UnsupportedAudioFileException, LineUnavailableException {
-
-        File file = null;
-        AudioInputStream audioInputStream = null;
-
-        file = new File(resourcesBasePath()+"/count/count.mp3");
-        JavaPlayer javaPlayer = new JavaPlayer();
-        audioInputStream = javaPlayer.getAudioInputStream(file);
-        AudioFormat audioFormat = audioInputStream.getFormat();
-
-        // Choose a mixer
-        Mixer.Info[] infos = AudioSystem.getMixerInfo();
-        Mixer mixer = AudioSystem.getMixer(infos[0]);
-
-        DataLine.Info info = new DataLine.Info(SourceDataLine.class, audioFormat);
-        if (!AudioSystem.isLineSupported(info)) {
-            System.out.println("Play.playAudioStream does not handle this type of audio on this system.");
-            return;
-        }
-        SourceDataLine dataLine = (SourceDataLine) mixer.getLine(info);
-
-        // The line acquires system resources (throws LineAvailableException).
-        try {
-            dataLine.open(audioFormat);
-        } catch (LineUnavailableException e) {
-            e.printStackTrace();
-        }
-
-        dataLine.start();
-
-        // Buffer contains 1 second of music.
-        System.out.println("Frame rate : "+audioFormat.getFrameRate());
-        System.out.println("Frame size : "+audioFormat.getFrameSize());
-        final int bufferSize = (int) audioFormat.getFrameRate() * audioFormat.getFrameSize();
-        System.out.println(bufferSize);
-        byte[] buffer = new byte[bufferSize];
-        // Skip 5 seconds of music
-        skip(5,audioInputStream,buffer,bufferSize);
-        int bytes = audioInputStream.read(buffer, 0, bufferSize);
-        while (bytes != -1) {
-            dataLine.write(buffer, 0, bytes);
-            bytes = audioInputStream.read(buffer, 0, bufferSize);
-            System.out.println(bytes);
-        }
-    }
-
-    private void skip(int seconds,AudioInputStream stream,byte[] buffer,int bytesPerSecond) throws IOException {
-        for (int i=0;i<seconds;i++) {
-            readOneSecond(stream,buffer,bytesPerSecond);
-        }
-    }
-
-    private int readOneSecond(AudioInputStream stream,byte[] buffer,int bytesPerSecond) throws IOException {
-        int bytes = 0;
-        int totalBytesRead = 0;
-        while (bytes != -1 && totalBytesRead < bytesPerSecond) {
-            bytes = stream.read(buffer, totalBytesRead, bytesPerSecond - totalBytesRead);
-            totalBytesRead += bytes;
-        }
-        return totalBytesRead;
-    }
 
 
     @Test
@@ -222,7 +160,8 @@ public class TestJavaPlayer {
         playList.addAudioFile(resourcesBasePath()+"/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 2.flac");
 
         //Player player = new JavaPlayer(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
-        Player player = new JavaPlayer("CUBE [plughw:2,0]");
+        //Player player = new JavaPlayer("CUBE [plughw:2,0]");
+        Player player = new JavaPlayer();
         player.registerListener(new ConsoleLogPlayerListener());
         player.setPlayList(playList);
         player.play();
@@ -337,7 +276,9 @@ public class TestJavaPlayer {
 
         player.play();
         Thread.sleep(500);
-        player.pause();Thread.sleep(3000);player.play();
+        player.pause();
+        Thread.sleep(3000);
+        player.play();
 
         player.setPos(1);
         Thread.sleep(500);
