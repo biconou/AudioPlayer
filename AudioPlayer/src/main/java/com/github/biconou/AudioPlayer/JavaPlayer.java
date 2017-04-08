@@ -319,11 +319,11 @@ public class JavaPlayer implements Player {
 
                                     pos = -1;
                                 }
-                                byte[] oneSecondBuffer = audioBuffers.getOneSecondOfMusic();
+                                AudioBuffers.BufferHolder oneSecondBuffer = audioBuffers.getOneSecondOfMusic();
                                 if (oneSecondBuffer != null) {
                                     state.set(State.PLAYING);
                                     // Write audio data to the line;
-                                    dataLineHolder.getDataLine().write(oneSecondBuffer, 0, oneSecondBuffer.length);
+                                    dataLineHolder.getDataLine().write(oneSecondBuffer.buffer, 0, oneSecondBuffer.bytes);
                                     // Position is now one second ahead
                                     infos.currentPosition += 1;
                                 } else {
@@ -331,9 +331,6 @@ public class JavaPlayer implements Player {
                                 }
                             }
                         }
-                        log.debug("before discard");
-                        audioBuffers.discard();
-                        log.debug("after discard");
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
@@ -420,16 +417,21 @@ public class JavaPlayer implements Player {
     private AudioInputStream getNextStreamFromPlayList() throws IOException, UnsupportedAudioFileException {
         log.debug("Player {} - getNextStreamFromPlayList : playlist count={} playlist index=", this, playList.getSize(), playList.getIndex());
         File file = playList.getNextAudioFile();
-        return getCurrentStreamFromPlayList();
+        if (file != null) {
+            log.debug("Picking from play list : file {}.", file.getAbsolutePath());
+            AudioInputStream audioStream = getAudioInputStream(file);
+            return audioStream;
+        } else {
+            log.debug("Nothing picked from playlist.");
+            return null;
+        }
     }
 
     private AudioInputStream getCurrentStreamFromPlayList() throws IOException, UnsupportedAudioFileException {
         File file = playList.getCurrentAudioFile();
         if (file != null) {
-            log.debug("Picking from play list : file {}.", file.getAbsolutePath());
             return getAudioInputStream(file);
         } else {
-            log.debug("Nothing picked from playlist.");
             return null;
         }
     }

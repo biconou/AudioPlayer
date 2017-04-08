@@ -16,13 +16,17 @@ public class AudioBuffers {
 
     private static Logger log = LoggerFactory.getLogger(AudioBuffers.class);
 
-    private static byte[] endBuffer = new byte[]{};
-    private BlockingQueue<byte[]> queue = new LinkedBlockingQueue<>(10);
+    private static BufferHolder endBuffer = new BufferHolder();
+    private BlockingQueue<BufferHolder> queue = new LinkedBlockingQueue<>(10);
     AudioFormat audioFormat = null;
     int bytesPerSecond = 0;
     AudioInputStream audioInputStream = null;
     int secondsAlreadyRead = 0;
-    boolean continueFill = true;
+
+    static class BufferHolder{
+        public int bytes;
+        public byte[] buffer;
+    }
 
     public AudioBuffers(AudioInputStream audioInputStream) {
         this.audioInputStream = audioInputStream;
@@ -37,25 +41,17 @@ public class AudioBuffers {
         Thread T = new Thread(() -> {
             try {
                 int bytes = 0;
-                while (bytes != -1 && continueFill) {
-                    byte[] buffer = new byte[bytesPerSecond];
+                while (bytes != -1) {
                     try {
-                        bytes = AudioSystemUtils.readOneSecond(audioInputStream,buffer,bytesPerSecond);
+                        BufferHolder holder = new BufferHolder();
+                        holder.buffer = new byte[bytesPerSecond];
+                        bytes = AudioSystemUtils.readOneSecond(audioInputStream,holder.buffer,bytesPerSecond);
+                        if (bytes != -1) {
+                            holder.bytes = bytes;
+                            queue.put(holder);
+                        }
                     } catch (IOException e) {
                         throw new RuntimeException(e);
-                    }
-                    queue.put(buffer);
-                }
-                if (!continueFill) {
-                    if (audioInputStream != null) {
-                        try {
-                            audioInputStream.close();
-                            audioInputStream = null;
-                            queue.clear();
-                            queue = null;
-                        } catch (IOException e) {
-                            // Ignore exception
-                        }
                     }
                 }
                 queue.put(endBuffer);
@@ -66,8 +62,8 @@ public class AudioBuffers {
         T.start();
     }
 
-    byte[] getOneSecondOfMusic() {
-        byte[] polled;
+    BufferHolder getOneSecondOfMusic() {
+        BufferHolder polled;
         try {
             polled = queue.take();
         } catch (InterruptedException e) {
@@ -81,10 +77,6 @@ public class AudioBuffers {
         }
     }
 
-
-    public void discard() {
-        continueFill = false;
-    }
 
     public void skip(int seconds) throws IllegalStateException {
         if (seconds <= secondsAlreadyRead) {

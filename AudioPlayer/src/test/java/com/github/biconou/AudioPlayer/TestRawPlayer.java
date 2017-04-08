@@ -58,10 +58,10 @@ public class TestRawPlayer {
         AudioBuffers audioBuffers = new AudioBuffers(audioInputStream);
         audioBuffers.fillBuffers();
 
-        byte[] buffer = audioBuffers.getOneSecondOfMusic();
-        while ( buffer != null ) {
-            dataLine.write(buffer, 0, bytesPerSecond);
-            buffer = audioBuffers.getOneSecondOfMusic();
+        AudioBuffers.BufferHolder holder = audioBuffers.getOneSecondOfMusic();
+        while ( holder != null ) {
+            dataLine.write(holder.buffer, 0, holder.bytes);
+            holder = audioBuffers.getOneSecondOfMusic();
         }
     }
 
