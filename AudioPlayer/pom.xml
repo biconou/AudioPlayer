@@ -10,6 +10,25 @@
     <name>AudioPlayer</name>
     <url>https://github.com/biconou/AudioPlayer</url>
 
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>https://github.com/biconou/AudioPlayer.git</url>
+    </scm>
+
+    <developers>
+        <developer>
+            <name>Rémi Cocula</name>
+            <email>rcocula@free.fr</email>
+        </developer>
+    </developers>
+
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
