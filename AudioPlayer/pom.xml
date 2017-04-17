@@ -89,12 +89,19 @@
                 <artifactId>license-maven-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>first</id>
+                        <id>license-update-file-header</id>
                         <configuration>
                             <copyrightOwners>Rémi Cocula</copyrightOwners>
                         </configuration>
                         <goals>
                             <goal>update-file-header</goal>
+                        </goals>
+                        <phase>process-sources</phase>
+                    </execution>
+                    <execution>
+                        <id>update-project-license</id>
+                        <goals>
+                            <goal>update-project-license</goal>
                         </goals>
                         <phase>process-sources</phase>
                     </execution>
