@@ -237,10 +237,6 @@ public class CMusController {
 	int port = 0;
 	String passwd = null;
 
-	/**
-	 * Public constructor.
-	 * @throws Exception 
-	 */
 	public CMusController(final String host, final int port,
 			final String password) throws Exception {
 
@@ -295,12 +291,6 @@ public class CMusController {
 	}
 
 
-	/**
-	 * 
-	 * @param in
-	 * @return
-	 * @throws IOException
-	 */
 	private String readAnswer(BufferedReader in) throws IOException {
 		StringBuilder answerBuilder = new StringBuilder();
 
@@ -312,11 +302,6 @@ public class CMusController {
 		return answerBuilder.toString();
 	}
 
-	/**
-	 * 
-	 * @param in
-	 * @throws Exception
-	 */
 	private void validAuth(BufferedReader in) throws Exception {
 		String passAnswer = readAnswer(in);
 		if (passAnswer != null && passAnswer.trim().length() != 0) {
@@ -325,10 +310,6 @@ public class CMusController {
 	}
 
 
-	/**
-	 * 
-	 * @param command
-	 */
 	public  void sendCommandToCMus(final String command,final CMusCommandHandler handler) throws Exception {
 
 		LOG.debug("sending command to cmus : {}",command);
@@ -401,30 +382,14 @@ public class CMusController {
 	//	}
 
 
-	/**
-	 * Stop playing in cmus
-	 * 
-	 * @throws Exception 
-	 * 
-	 */
 	public void stop() throws Exception {
 		sendCommandToCMus("player-stop",noAnswerExpectedCMusCommandHandler);
 	}
 
-	/**
-	 * Pause playing in cmus
-	 * 
-	 * @throws Exception 
-	 * 
-	 */
 	public void pause() throws Exception {
 		sendCommandToCMus("player-pause",noAnswerExpectedCMusCommandHandler);
 	}
 
-	/**
-	 * @throws Exception 
-	 * 
-	 */
 	public void clearPlayQueue() throws Exception {
 		sendCommandToCMus("clear -q",noAnswerExpectedCMusCommandHandler);
 	}
@@ -445,7 +410,7 @@ public class CMusController {
 	 * Clear play queue and init a new play queue with the given file name ready to be played.
 	 * 
 	 * @param file The given file name  (mus be an absolute file path and name).
-	 * @throws Exception 
+	 * @throws Exception in case of any error
 	 */
 	public void initPlayQueue(String file) throws Exception {
 		stop();
@@ -461,21 +426,11 @@ public class CMusController {
 		//TODO do something ?
 	}
 
-	/**
-	 * 
-	 * @param gain
-	 * @throws Exception 
-	 */
 	public void setGain(float gain) throws Exception {
 		int vol = (int)(gain*100);
 		sendCommandToCMus("set softvol_state="+vol+" "+vol,noAnswerExpectedCMusCommandHandler);
 	}
 
-	/**
-	 * 
-	 * @return
-	 * @throws Exception
-	 */
 	public CMusStatus status() throws Exception {
 		LOG.debug("Begin status()");
 
@@ -528,11 +483,6 @@ public class CMusController {
 		return cmusStatus; 
 	}
 
-	/**
-	 * 
-	 * @return
-	 * @throws Exception 
-	 */
 	public boolean isPaused() throws Exception {
 		CMusStatus status = status();
 		if (status.getStatus().equals("paused")) {

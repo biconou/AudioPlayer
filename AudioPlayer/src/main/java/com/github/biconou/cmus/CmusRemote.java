@@ -348,13 +348,6 @@ public class CmusRemote  {
 		//alert("Received Status", cmusStatus.toSimpleString());
 	}
 
-	/**
-	 * 
-	 * @param host
-	 * @param port
-	 * @param password
-	 * @param command
-	 */
 	public  void sendCommand(final String host, final int port,
 			final String password, final CmusCommand command) {
 
@@ -432,10 +425,6 @@ public class CmusRemote  {
 	}
 
 	
-	/**
-	 * 
-	 * @param args
-	 */
 	public static void main(String[] args) {
 		CmusRemote controller = new CmusRemote();
 		controller.sendCommand("localhost", 4041, "subsonic", CmusCommand.PLAY);
