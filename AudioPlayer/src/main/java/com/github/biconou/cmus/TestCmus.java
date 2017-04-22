@@ -25,9 +25,6 @@ package com.github.biconou.cmus;
 
 public class TestCmus {
 
-	/**
-	 * @param args
-	 */
 	public static void main(String[] args) {
 		
 		try {

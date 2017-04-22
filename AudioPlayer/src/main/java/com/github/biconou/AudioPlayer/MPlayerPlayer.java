@@ -376,11 +376,6 @@ public class MPlayerPlayer implements Player {
 	}
 
 
-	/** 
-	 * Play audio from the given file name. 
-	 * @param fileName  The file to play
-	 * @throws IOException 
-	 */
 /*	public static void playAudioFiles(String[] fileName) throws Exception {
 
 		PlayList playList = new ArrayPlayList(fileName); 
@@ -462,20 +457,10 @@ public class MPlayerPlayer implements Player {
 	} // playAudioStream
 
 
-	/**
-	 * 
-	 * @param fileName
-	 * @return
-	 */
 	private String normalizeFileName(String fileName) {
 		return fileName.replace("\\", "/");
 	}
 
-	/**
-	 * 
-	 * @param file
-	 * @param append
-	 */
 	private void playFile(String file,boolean append) {
 		LOG.debug("Begin playFile");
 		
@@ -503,9 +488,6 @@ public class MPlayerPlayer implements Player {
 
 
 
-	/**
-	 * 
-	 */
 	private void notifyNextStream(AudioInputStream nextAudioStream) {
 
 		LOG.debug("Begin notifyNextStream()");
@@ -551,18 +533,12 @@ public class MPlayerPlayer implements Player {
 
 	}
 
-	/**
-	 * 
-	 */
 	private void notifyEnd() {
 		for (PlayerListener listener : listeners) {
 			//listener.endNotified();
 		}
 	}
 
-	/**
-	 * 
-	 */
 	public void setGain(float gain) {
 
 		int intGain = (int) (gain * 100);
@@ -600,12 +576,6 @@ public class MPlayerPlayer implements Player {
 		return null;
 	}
 
-	/**
-	 * 
-	 * @param file
-	 * @return
-	 * @throws IOException 
-	 */
 	private String copyFileToTmpDir(String file) throws Exception {
 		LOG.debug("Begin copyFileToTmpDir");
 		

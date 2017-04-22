@@ -39,7 +39,7 @@ public interface Player {
     /**
      * Returns the current state of the player.
      *
-     * @return
+     * @return the current state of the player.
      */
 	State getState();
 
@@ -62,7 +62,7 @@ public interface Player {
 	 * Register a new listener that will be notified when certain events
 	 * are triggered during playing.
 	 *
-	 * @param listener
+	 * @param listener a listener to register.
 	 */
 	void registerListener(PlayerListener listener);
 
@@ -70,7 +70,7 @@ public interface Player {
 	 * Returns whether the player is currently playing.
 	 * ie. is State {@link State#PLAYING}
 	 *
-	 * @return
+	 * @return true if the player is playing.
 	 */
     boolean isPlaying();
 
@@ -78,7 +78,7 @@ public interface Player {
 	 * Returns whether the player is currently paused.
 	 * ie. is State {@link State#PAUSED}
 	 *
-	 * @return
+	 * @return true if the player is paused.
 	 */
     boolean isPaused();
 
