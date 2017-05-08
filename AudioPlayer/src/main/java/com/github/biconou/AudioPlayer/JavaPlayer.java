@@ -426,6 +426,7 @@ public class JavaPlayer implements Player {
 
             // Allows the line to move data in and out to a port.
             dataLine.start();
+            dataLineHolder.setGain(getGain());
             log.debug("dataline started");
         }
     }
