@@ -396,13 +396,6 @@ public class JavaPlayer implements Player {
         return this.gain;
     }
 
-    private void skip(int seconds, AudioInputStream stream, byte[] buffer, int bytesPerSecond) throws IOException {
-        for (int i=0;i<seconds;i++) {
-            AudioSystemUtils.readOneSecond(stream,buffer,bytesPerSecond);
-        }
-    }
-
-
 
     private void pickADataLine(AudioFormat audioFormat) throws LineUnavailableException {
         if (dataLineHolder == null || previousUsedAudioFormat == null || !audioFormat.toString().equals(previousUsedAudioFormat.toString())) {
