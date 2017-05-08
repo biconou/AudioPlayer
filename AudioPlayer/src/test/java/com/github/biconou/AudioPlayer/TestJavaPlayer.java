@@ -53,6 +53,15 @@ public class TestJavaPlayer {
         AudioSystem.getAudioFileTypes();
     }
 
+    @Test
+    public void initPlayer() {
+
+        JavaPlayer player = new JavaPlayer();
+        System.out.print(player);
+
+        player = new JavaPlayer("default [default]");
+        System.out.print(player);
+    }
 
 
 

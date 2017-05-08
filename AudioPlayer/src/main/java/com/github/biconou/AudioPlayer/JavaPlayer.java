@@ -43,6 +43,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
 
 
 public class JavaPlayer implements Player {
@@ -103,19 +104,17 @@ public class JavaPlayer implements Player {
 
 
     private final AtomicReference<State> state = new AtomicReference<State>(State.CLOSED);
-
     private DefaultPlayingInfosImpl infos = new DefaultPlayingInfosImpl();
-
-    PlayList playList = null;
-    List<PlayerListener> listeners = new ArrayList<PlayerListener>();
-    Boolean mustPause = Boolean.FALSE;
-    Boolean mustStop = Boolean.FALSE;
-    int pos = -1;
-    AudioFormat previousUsedAudioFormat = null;
+    private PlayList playList = null;
+    private List<PlayerListener> listeners = new ArrayList<PlayerListener>();
+    private Boolean mustPause = Boolean.FALSE;
+    private Boolean mustStop = Boolean.FALSE;
+    private int pos = -1;
+    private AudioFormat previousUsedAudioFormat = null;
     private Mixer mixer;
     private Map<String, AudioFormat> supportedFormats = new HashMap<>();
     private SourceDataLineHolder dataLineHolder = null;
-    float gain = DEFAULT_GAIN_VALUE;
+    private float gain = DEFAULT_GAIN_VALUE;
 
 
     public JavaPlayer(Mixer mixer) {
@@ -124,13 +123,15 @@ public class JavaPlayer implements Player {
 
 
     public JavaPlayer(String mixerName) {
-        Arrays.stream(AudioSystemUtils.listAllMixers()).forEach(info -> {
-            if (info.getName().equals(mixerName)) {
-                init(AudioSystem.getMixer(info));
-            } else {
-                throw new RuntimeException("No mixer named "+mixerName);
-            }
-        });
+
+        Mixer.Info[] allMixers = AudioSystemUtils.listAllMixers();
+
+        Predicate<Mixer.Info> p = mixer -> mixer.getName().equals(mixerName);
+
+        if (Arrays.stream(allMixers).noneMatch(p)) {
+            throw new RuntimeException("No mixer named "+mixerName);
+        }
+        Arrays.stream(allMixers).filter(p).forEach(mixer -> init(AudioSystem.getMixer(mixer)));
     }
 
 
