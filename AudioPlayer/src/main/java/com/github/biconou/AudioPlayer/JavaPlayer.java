@@ -222,7 +222,7 @@ public class JavaPlayer implements Player {
 
 
     public void setPlayList(PlayList playList) {
-        if (isPlaying()) {
+        if (isPlaying() || isPaused()) {
             stop();
         }
         this.playList = playList;
@@ -249,6 +249,7 @@ public class JavaPlayer implements Player {
                 notifyEvent(PlayerListener.Event.STOP);
                 log.debug("Player {} : stop.", this);
                 this.mustStop = Boolean.TRUE;
+                this.mustPause = Boolean.FALSE;
             }
             // wait until stop is complete
             while (!getState().equals(State.STOPPED)) ;

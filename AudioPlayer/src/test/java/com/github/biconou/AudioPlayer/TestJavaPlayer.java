@@ -94,6 +94,12 @@ public class TestJavaPlayer {
         while (1==1);
     }
 
+    /**
+     * This test case verifies that changing the play list actually stops the player.
+     *
+     *
+     * @throws Exception
+     */
     @Test
     public void changePlayListWhilePlaying() throws Exception {
 
@@ -113,6 +119,41 @@ public class TestJavaPlayer {
         Thread.sleep(2000);
 
         player.setPlayList(playList2);
+        System.out.println("+++ start play second play list +++");
+        player.play();
+
+        while (!player.isPlaying());
+
+        while (player.isPlaying());
+    }
+
+    /**
+     * This test case verifies that changing the play list actually stops the player.
+     *
+     *
+     * @throws Exception
+     */
+    @Test
+    public void changePlayListWhilePausing() throws Exception {
+
+        ArrayListPlayList playList1 = new ArrayListPlayList();
+        playList1.addAudioFile(resourcesBasePath()+"/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 1.flac");
+        playList1.addAudioFile(resourcesBasePath()+"/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 2.flac");
+
+        ArrayListPlayList playList2 = new ArrayListPlayList();
+        playList2.addAudioFile(resourcesBasePath()+"/WAV/naim-test-2-wav-24-96000.wav");
+        playList2.addAudioFile(resourcesBasePath()+"/WAV/naim-test-2-wav-16-44100.wav");
+
+
+        Player player = new JavaPlayer(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
+        player.setPlayList(playList1);
+        player.play();
+
+        Thread.sleep(2000);
+        player.pause();
+
+        player.setPlayList(playList2);
+        System.out.println("+++ start play second play list +++");
         player.play();
 
         while (!player.isPlaying());

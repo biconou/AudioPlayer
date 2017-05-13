@@ -48,7 +48,7 @@ public interface Player {
      *
      * If a play list is already present, replaces the current playlist by a given one.
 	 *
-     * If the player is currently playing, it is stopped and then
+     * If the player is currently playing or paused, it is stopped and then
      * the current audio stream to be played is now the first one of the new play list.
      *
      * Anyway, after a call to this method, the player remains stopped.
@@ -88,7 +88,7 @@ public interface Player {
      * <ul>
 	 * <li>If the player is currently closed, it remains closed and nothing happens.</li>
      * <li>If the player is currently stopped, it remains stopped and nothing happens.</li>
-     * <li>If the player is currently playing it stops and a {@link PlayerListener.Event#STOP} event is triggered.
+     * <li>If the player is currently playing or paused it stops and a {@link PlayerListener.Event#STOP} event is triggered.
      * The current audio streams in the play list remains the latest being played.</li>
      * </ul>
 	 */
