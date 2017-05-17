@@ -484,6 +484,7 @@ public class JavaPlayer implements Player {
     }
 
     private void stopLine() {
+        log.debug("stopLine");
         if (dataLineHolder.getDataLine() != null) {
             dataLineHolder.getDataLine().drain();
             dataLineHolder.getDataLine().close();
@@ -493,11 +494,17 @@ public class JavaPlayer implements Player {
 
     @Override
     public void close() {
-        doStop();
-        doClose();
+        log.debug("close");
+        if (!getState().equals(State.CLOSED)) {
+            if (!getState().equals(State.STOPPED)) {
+                stop();
+            }
+            doClose();
+        }
     }
 
     private void doClose() {
+        log.debug("doClose");
         stopLine();
         dataLineHolder = null;
         gain = DEFAULT_GAIN_VALUE;
