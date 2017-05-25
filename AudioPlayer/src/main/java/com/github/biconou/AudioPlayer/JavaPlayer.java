@@ -261,6 +261,7 @@ public class JavaPlayer implements Player {
         mustStop = false;
         previousUsedAudioFormat = null;
         pos = -1;
+        infos.currentPosition = 0;
         state.set(State.STOPPED);
     }
 

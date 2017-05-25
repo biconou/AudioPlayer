@@ -101,8 +101,8 @@ public class AudioBuffers {
 
 
     public void skip(int seconds) throws IllegalStateException {
-        if (seconds <= secondsAlreadyRead) {
-            throw new IllegalStateException();
+        if (seconds < secondsAlreadyRead) {
+            throw new IllegalStateException("Try to skip to illegal position "+seconds+" as secondsAlreadyRead is "+secondsAlreadyRead);
         } else {
             while (secondsAlreadyRead < seconds) {
                 getOneSecondOfMusic();
