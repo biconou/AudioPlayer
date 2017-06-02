@@ -210,6 +210,28 @@ public class TestJavaPlayer {
     }
 
     @Test
+    public void playClosePlay() throws Exception {
+
+        ArrayListPlayList arrayListPlayList = new ArrayListPlayList();
+        arrayListPlayList.addAudioFile(resourcesBasePath()+"/Music/_DIR_ Sixteen Horsepower/_DIR_ Sackcloth 'n' Ashes/Sixteen Horsepower - 01 I Seen What I Saw.mp3");
+        arrayListPlayList.addAudioFile(resourcesBasePath()+"/Music/_DIR_ Sixteen Horsepower/_DIR_ Sackcloth 'n' Ashes/Sixteen Horsepower - 10 Reed Neck Reel.mp3");
+        PlayList playList = arrayListPlayList;
+
+        Player player = new JavaPlayer(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
+        player.setPlayList(playList);
+        player.registerListener(new ConsoleLogPlayerListener());
+        Assert.assertEquals(Player.State.CLOSED,player.getState());
+        player.setGain(0.9f);
+        player.play();
+        Thread.sleep(10000);
+        Assert.assertEquals(Player.State.PLAYING,player.getState());
+        player.close();
+        player.play();
+        Thread.sleep(5000);
+        while (!Player.State.CLOSED.equals(player.getState()));
+    }
+
+    @Test
     public void playPlay() throws Exception {
 
         ArrayListPlayList playList = new ArrayListPlayList();

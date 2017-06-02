@@ -508,7 +508,6 @@ public class JavaPlayer implements Player {
         log.debug("doClose");
         stopLine();
         dataLineHolder = null;
-        gain = DEFAULT_GAIN_VALUE;
         state.set(State.CLOSED);
     }
 }

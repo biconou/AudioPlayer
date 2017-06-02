@@ -103,7 +103,12 @@ public interface Player {
 	/**
 	 * Starts playing.
 	 * If the playing is currently paused, it resumes the playing.
-	 * If the player is stopped, this will start to play the current audio stream in play list.
+	 * If the player is stopped or stopped this will start to play
+	 * the current audio stream in play list from its beginning.
+	 *
+	 * It plays all songs in the play list. When the play list is finished,
+	 * the player state is closed.
+	 *
 	 *
 	 * @throws NothingToPlayException if the play list is empty.
      * @throws AlreadyPlayingException if the player is already playing.
