@@ -22,20 +22,92 @@ package com.github.biconou.AudioPlayer;
  * #L%
  */
 
+import com.sun.media.sound.JDK13Services;
+import com.sun.media.sound.WaveExtensibleFileReader;
+import com.sun.media.sound.WaveFileReader;
+import com.sun.media.sound.WaveFloatFileReader;
+import javazoom.spi.mpeg.sampled.file.MpegAudioFileReader;
+import javazoom.spi.vorbis.sampled.file.VorbisAudioFileReader;
+import org.jflac.sound.spi.FlacAudioFileReader;
+
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Mixer;
+import javax.sound.sampled.UnsupportedAudioFileException;
+import javax.sound.sampled.spi.AudioFileReader;
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * Created by remi on 19/03/17.
  */
 public class AudioSystemUtils {
 
+    private static List<AudioFileReader> audioFileReaders;
+
+    static {
+
+        audioFileReaders = new ArrayList<AudioFileReader>();
+        audioFileReaders.add(new WaveFileReader());
+        audioFileReaders.add(new WaveFloatFileReader());
+        audioFileReaders.add(new WaveExtensibleFileReader());
+
+        List foundAudioFileReaders = JDK13Services.getProviders(AudioFileReader.class);
+        foundAudioFileReaders.stream().forEach(reader -> {
+            if (!(reader instanceof WaveFileReader) &&
+                    !(reader instanceof WaveFloatFileReader) &&
+                        !(reader instanceof WaveExtensibleFileReader)) {
+                audioFileReaders.add((AudioFileReader) reader);
+            }
+        });
+    }
+
+
+    public static AudioInputStream getAudioInputStream(File file)
+            throws UnsupportedAudioFileException, IOException {
+
+        List providers = audioFileReaders;
+        AudioInputStream audioStream = null;
+
+        for(int i = 0; i < providers.size(); i++ ) {
+            AudioFileReader reader = (AudioFileReader) providers.get(i);
+            try {
+                audioStream = reader.getAudioInputStream( file ); // throws IOException
+                break;
+            } catch (UnsupportedAudioFileException e) {
+                continue;
+            }
+        }
+
+        if( audioStream==null ) {
+            throw new UnsupportedAudioFileException("could not get audio input stream from input file");
+        } else {
+            return audioStream;
+        }
+    }
+
+
     public static Mixer.Info[] listAllMixers() {
         return AudioSystem.getMixerInfo();
     }
+
+    public static Mixer findMixerByName(String mixerName) {
+
+        Mixer.Info[] allMixers = AudioSystemUtils.listAllMixers();
+
+        Predicate<Mixer.Info> p = mixer -> mixer.getName().equals(mixerName);
+        Mixer.Info found = Arrays.stream(allMixers).filter(p).findFirst().get();
+        if (found != null) {
+            return AudioSystem.getMixer(found);
+        } else {
+            return null;
+        }
+    }
+
 
     public static int readOneSecond(AudioInputStream stream, byte[] buffer, int bytesPerSecond) throws IOException {
         int bytes;

@@ -39,6 +39,7 @@ public class TestJavaPlayer {
     }
 
 
+
     @Test
     public void mixer() {
         Mixer.Info[] infos = AudioSystem.getMixerInfo();
@@ -53,20 +54,16 @@ public class TestJavaPlayer {
         AudioSystem.getAudioFileTypes();
     }
 
-    @Test
-    public void initPlayer() {
-
-        JavaPlayer player = new JavaPlayer();
-        System.out.print(player);
-
-        player = new JavaPlayer("default [default]");
-        System.out.print(player);
+    private Player initPlayer() {
+       return new JavaPlayer("MID [plughw:0,0]");
     }
 
 
 
     @Test
     public void playMultipleFiles() throws Exception {
+
+        Player player = initPlayer();
 
         ArrayListPlayList playList = new ArrayListPlayList();
         playList.addAudioFile(resourcesBasePath()+"/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 1.flac");
@@ -78,7 +75,7 @@ public class TestJavaPlayer {
         playList.addAudioFile(resourcesBasePath()+"/Music/_DIR_ Sixteen Horsepower/_DIR_ Sackcloth 'n' Ashes/Sixteen Horsepower - 10 Reed Neck Reel.mp3");
 
 
-        Player player = new JavaPlayer(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
+
         player.registerListener(new ConsoleLogPlayerListener());
         player.setPlayList(playList);
         player.play();
@@ -103,6 +100,8 @@ public class TestJavaPlayer {
     @Test
     public void changePlayListWhilePlaying() throws Exception {
 
+        Player player = initPlayer();
+
         ArrayListPlayList playList1 = new ArrayListPlayList();
         playList1.addAudioFile(resourcesBasePath()+"/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 1.flac");
         playList1.addAudioFile(resourcesBasePath()+"/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 2.flac");
@@ -112,7 +111,6 @@ public class TestJavaPlayer {
         playList2.addAudioFile(resourcesBasePath()+"/WAV/naim-test-2-wav-16-44100.wav");
 
 
-        Player player = new JavaPlayer(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
         player.setPlayList(playList1);
         player.play();
 
@@ -136,6 +134,8 @@ public class TestJavaPlayer {
     @Test
     public void changePlayListWhilePausing() throws Exception {
 
+        Player player = initPlayer();
+
         ArrayListPlayList playList1 = new ArrayListPlayList();
         playList1.addAudioFile(resourcesBasePath()+"/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 1.flac");
         playList1.addAudioFile(resourcesBasePath()+"/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 2.flac");
@@ -145,7 +145,6 @@ public class TestJavaPlayer {
         playList2.addAudioFile(resourcesBasePath()+"/WAV/naim-test-2-wav-16-44100.wav");
 
 
-        Player player = new JavaPlayer(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
         player.setPlayList(playList1);
         player.play();
 
@@ -164,27 +163,30 @@ public class TestJavaPlayer {
     @Test
     public void playDifferentFormats() throws Exception {
 
+        Player player = initPlayer();
+
         ArrayListPlayList playList = new ArrayListPlayList();
         playList.addAudioFile(resourcesBasePath()+"/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 2.flac");
         playList.addAudioFile(resourcesBasePath()+"/WAV/naim-test-2-wav-24-96000.wav");
 
 
-        Player player = new JavaPlayer(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
         player.registerListener(new ConsoleLogPlayerListener());
         player.setPlayList(playList);
         player.play();
-        Thread.sleep(30000);
+        while (!player.isPlaying());
+        while (player.isPlaying());
     }
 
     @Test
     public void playStopPlay() throws Exception {
+
+        Player player = initPlayer();
 
         ArrayListPlayList arrayListPlayList = new ArrayListPlayList();
         arrayListPlayList.addAudioFile(resourcesBasePath()+"/Music/_DIR_ Sixteen Horsepower/_DIR_ Sackcloth 'n' Ashes/Sixteen Horsepower - 01 I Seen What I Saw.mp3");
         arrayListPlayList.addAudioFile(resourcesBasePath()+"/Music/_DIR_ Sixteen Horsepower/_DIR_ Sackcloth 'n' Ashes/Sixteen Horsepower - 10 Reed Neck Reel.mp3");
         PlayList playList = arrayListPlayList;
 
-        Player player = new JavaPlayer(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
         player.setPlayList(playList);
         player.registerListener(new ConsoleLogPlayerListener());
         Assert.assertEquals(Player.State.CLOSED,player.getState());
@@ -212,12 +214,13 @@ public class TestJavaPlayer {
     @Test
     public void playClosePlay() throws Exception {
 
+        Player player = initPlayer();
+
         ArrayListPlayList arrayListPlayList = new ArrayListPlayList();
         arrayListPlayList.addAudioFile(resourcesBasePath()+"/Music/_DIR_ Sixteen Horsepower/_DIR_ Sackcloth 'n' Ashes/Sixteen Horsepower - 01 I Seen What I Saw.mp3");
         arrayListPlayList.addAudioFile(resourcesBasePath()+"/Music/_DIR_ Sixteen Horsepower/_DIR_ Sackcloth 'n' Ashes/Sixteen Horsepower - 10 Reed Neck Reel.mp3");
         PlayList playList = arrayListPlayList;
 
-        Player player = new JavaPlayer(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
         player.setPlayList(playList);
         player.registerListener(new ConsoleLogPlayerListener());
         Assert.assertEquals(Player.State.CLOSED,player.getState());
@@ -234,110 +237,151 @@ public class TestJavaPlayer {
     @Test
     public void playPlay() throws Exception {
 
+        Player player = initPlayer();
+
         ArrayListPlayList playList = new ArrayListPlayList();
         playList.addAudioFile(resourcesBasePath()+"/Music/_DIR_ Sixteen Horsepower/_DIR_ Sackcloth 'n' Ashes/Sixteen Horsepower - 01 I Seen What I Saw.mp3");
 
-        Player player = new JavaPlayer(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
         player.registerListener(new ConsoleLogPlayerListener());
         player.setPlayList(playList);
         player.play();
         Thread.sleep(1000);
-        player.play();
+        try {
+            player.play();
+        } catch (AlreadyPlayingException ex) {
+            // normal situation
+        }
         while (!Player.State.CLOSED.equals(player.getState()));
     }
 
     @Test
     public void playGapLess() throws Exception {
 
+        Player player = initPlayer();
+
         ArrayListPlayList playList = new ArrayListPlayList();
         playList.addAudioFile(resourcesBasePath()+"/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 1.flac");
         playList.addAudioFile(resourcesBasePath()+"/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 2.flac");
 
-        //Player player = new JavaPlayer(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
-        //Player player = new JavaPlayer("CUBE [plughw:2,0]");
-        Player player = new JavaPlayer();
         player.registerListener(new ConsoleLogPlayerListener());
         player.setPlayList(playList);
+        player.setGain(1);
         player.play();
-        Thread.sleep(30000);
+        while (!player.isPlaying());
+        while (player.isPlaying());
+
+    }
+
+    /**
+     * Play a single normal definition wav file.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void playWav() throws Exception {
+
+        Player player = initPlayer();
+
+        ArrayListPlayList playList = new ArrayListPlayList();
+        playList.addAudioFile(resourcesBasePath()+"/WAV/naim-test-2-wav-16-44100.wav");
+
+        player.registerListener(new ConsoleLogPlayerListener());
+        player.setPlayList(playList);
+        player.setGain(0.7f);
+        player.play();
+        while (!player.isPlaying());
+        while (player.isPlaying());
     }
 
     @Test
     public void playFlac() throws Exception {
 
+        Player player = initPlayer();
+
         ArrayListPlayList playList = new ArrayListPlayList();
         playList.addAudioFile(resourcesBasePath()+"/Music/_DIR_ Céline Frisch- Café Zimmermann - Bach- Goldberg Variations, Canons [Disc 1]/01 - Bach- Goldberg Variations, BWV 988 - Aria.flac");
 
-        Player player = new JavaPlayer(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
         player.registerListener(new ConsoleLogPlayerListener());
         player.setPlayList(playList);
+        player.setGain(1);
         player.play();
-        Thread.sleep(30000);
+        while (!player.isPlaying());
+        while (player.isPlaying());
     }
 
     @Test
     public void playMP3() throws Exception {
 
+        Player player = initPlayer();
+
         ArrayListPlayList playList = new ArrayListPlayList();
         playList.addAudioFile(resourcesBasePath()+"/Music/_DIR_ Sixteen Horsepower/_DIR_ Sackcloth 'n' Ashes/Sixteen Horsepower - 01 I Seen What I Saw.mp3");
 
-        Player player = new JavaPlayer(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
         player.registerListener(new ConsoleLogPlayerListener());
         player.setPlayList(playList);
+        player.setGain(1);
         player.play();
-        Thread.sleep(30000);
+        while (!player.isPlaying());
+        while (player.isPlaying());
     }
 
     @Test
     public void playOGG() throws Exception {
 
+        Player player = initPlayer();
+
         ArrayListPlayList playList = new ArrayListPlayList();
         playList.addAudioFile(resourcesBasePath()+"/OGG/01 - Sonata Violin & Cello I. Allegro.ogg");
 
-        Player player = new JavaPlayer(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
         player.registerListener(new ConsoleLogPlayerListener());
         player.setPlayList(playList);
+        player.setGain(1);
         player.play();
-        Thread.sleep(30000);
+        while (!player.isPlaying());
+        while (player.isPlaying());
     }
 
     @Test
-    public void playHD() throws Exception {
+    public void playWavHD() throws Exception {
+
+        Player player = initPlayer();
 
         ArrayListPlayList playList = new ArrayListPlayList();
         playList.addAudioFile(resourcesBasePath()+"/WAV/naim-test-2-wav-24-96000.wav");
 
-        //Player player = new JavaPlayer(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
-        Player player = new JavaPlayer("CUBE [plughw:2,0]");
-
         player.registerListener(new ConsoleLogPlayerListener());
         player.setPlayList(playList);
+        player.setGain(1);
         player.play();
-        Thread.sleep(30000);
+        while (!player.isPlaying());
+        while (player.isPlaying());
     }
 
     @Test
     public void playFlacHD() throws Exception {
 
+        Player player = initPlayer();
+
         ArrayListPlayList playList = new ArrayListPlayList();
         playList.addAudioFile(resourcesBasePath()+"/Orfeo/01-01-Toccata-SMR.flac");
 
-        //Player player = new JavaPlayer(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
-        Player player = new JavaPlayer("CUBE [plughw:2,0]");
 
         player.registerListener(new ConsoleLogPlayerListener());
         player.setPlayList(playList);
+        player.setGain(1);
         player.play();
-        while(1==1)
-        Thread.sleep(30000);
+        while (!player.isPlaying());
+        while (player.isPlaying());
     }
 
     @Test
     public void gain() throws Exception {
+
+        Player player = initPlayer();
+
         ArrayListPlayList playList = new ArrayListPlayList();
         playList.addAudioFile(resourcesBasePath()+"/Music/_DIR_ Sixteen Horsepower/_DIR_ Sackcloth 'n' Ashes/Sixteen Horsepower - 01 I Seen What I Saw.mp3");
 
-        Player player = new JavaPlayer(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
         player.registerListener(new ConsoleLogPlayerListener());
         player.setPlayList(playList);
         player.play();
@@ -359,14 +403,16 @@ public class TestJavaPlayer {
     @Test
     public void movePosition() throws Exception {
 
+        Player player = initPlayer();
+
         ArrayListPlayList playList = new ArrayListPlayList();
         //playList.addAudioFile(resourcesBasePath()+"/Music2/metallica/Fade to Black.mp3");
         playList.addAudioFile(resourcesBasePath()+"/count/count.mp3");
 
-        Player player = new JavaPlayer();
 
         player.registerListener(new ConsoleLogPlayerListener());
         player.setPlayList(playList);
+        player.setGain(1);
 
         player.play();
         Thread.sleep(500);

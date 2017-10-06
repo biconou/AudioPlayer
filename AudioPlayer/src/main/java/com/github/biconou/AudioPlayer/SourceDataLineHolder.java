@@ -22,13 +22,18 @@ package com.github.biconou.AudioPlayer;
  * #L%
  */
 
-import javax.sound.sampled.FloatControl;
-import javax.sound.sampled.SourceDataLine;
+import jdk.nashorn.internal.runtime.Source;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.sound.sampled.*;
 
 /**
  * Created by remi on 28/03/17.
  */
 public class SourceDataLineHolder {
+
+    private static Logger log = LoggerFactory.getLogger(SourceDataLineHolder.class);
 
     private SourceDataLine dataLine = null;
     private float gain = 0.5f;
@@ -36,6 +41,46 @@ public class SourceDataLineHolder {
     public SourceDataLineHolder(SourceDataLine dataLine,float gain) {
         this.dataLine = dataLine;
         this.gain = gain;
+    }
+
+    public void close() {
+        if (dataLine != null) {
+            log.debug("Closing dataline {}",dataLine.toString());
+            try {
+                dataLine.close();
+            } catch (Exception e) {
+                // nothing to do.
+            }
+        }
+    }
+
+    public static SourceDataLineHolder open(Mixer mixer, AudioInputStream audioInputStream, float gain) throws LineUnavailableException {
+
+        SourceDataLineHolder dataLineHolder = null;
+        AudioFormat audioFormat = audioInputStream.getFormat();
+
+        try {
+            DataLine.Info info = new DataLine.Info(SourceDataLine.class, audioFormat);
+
+            SourceDataLine dataLine;
+            dataLine = (SourceDataLine) mixer.getLine(info);
+            log.debug("A new line {} has been picked.", dataLine);
+            dataLineHolder = new SourceDataLineHolder(dataLine, gain);
+
+            dataLine.open(audioFormat);
+            log.debug("dataline opened");
+
+            // Allows the line to move data in and out to a port.
+            dataLine.start();
+            dataLineHolder.setGain(gain);
+            log.debug("dataline started");
+        } catch (LineUnavailableException e) {
+            if (dataLineHolder != null) {
+                dataLineHolder.close();
+            }
+            throw e;
+        }
+        return dataLineHolder;
     }
 
     private void applyGain() {
@@ -49,7 +94,8 @@ public class SourceDataLineHolder {
             return;
         }
 
-        try {
+        if (dataLine.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+            dataLine.getControls();
             FloatControl control = (FloatControl) dataLine.getControl(FloatControl.Type.MASTER_GAIN);
             if (gain == -1) {
                 control.setValue(0);
@@ -57,11 +103,13 @@ public class SourceDataLineHolder {
                 float max = control.getMaximum();
                 float min = control.getMinimum(); // negative values all seem to be zero?
                 float range = max - min;
+                float masterGainLevel = min + (range * gain);
 
                 control.setValue(min + (range * gain));
+                log.debug("Master gain level is now set to {}",masterGainLevel);
             }
-        } catch (IllegalArgumentException e) {
-            throw new RuntimeException(e);
+        } else {
+            log.warn("MASTER_GAIN control not available for this line. Volume remain unchanged.");
         }
     }
 
