@@ -90,6 +90,25 @@
                 </configuration>
             </plugin>
             <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>1.7</version>
+                <executions>
+                    <execution>
+                        <id>add-source</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>src/jaad-0.8.4/java</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
                 <executions>
@@ -228,6 +247,12 @@
             <artifactId>vorbisspi</artifactId>
             <version>1.0.3.3</version>
         </dependency>
+      <!--  <dependency>
+            <groupId>net.sourceforge.jaadec</groupId>
+            <artifactId>jaad</artifactId>
+            <version>0.8.5</version>
+        </dependency> -->
+
 
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -248,4 +273,14 @@
 
 
     </dependencies>
+
+   <!-- <repositories>
+        <repository>
+            <id>central</id>
+            <name>bintray</name>
+            <url>http://jcenter.bintray.com</url>
+        </repository>
+    </repositories> -->
+
+
 </project>

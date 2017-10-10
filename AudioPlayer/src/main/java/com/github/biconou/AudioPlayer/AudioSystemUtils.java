@@ -28,6 +28,7 @@ import com.sun.media.sound.WaveFileReader;
 import com.sun.media.sound.WaveFloatFileReader;
 import javazoom.spi.mpeg.sampled.file.MpegAudioFileReader;
 import javazoom.spi.vorbis.sampled.file.VorbisAudioFileReader;
+import net.sourceforge.jaad.spi.javasound.AACAudioFileReader;
 import org.jflac.sound.spi.FlacAudioFileReader;
 
 import javax.sound.sampled.AudioInputStream;
@@ -51,10 +52,11 @@ public class AudioSystemUtils {
 
     static {
 
-        audioFileReaders = new ArrayList<AudioFileReader>();
+        audioFileReaders = new ArrayList<>();
         audioFileReaders.add(new WaveFileReader());
         audioFileReaders.add(new WaveFloatFileReader());
         audioFileReaders.add(new WaveExtensibleFileReader());
+        audioFileReaders.add(new AACAudioFileReader());
 
         List foundAudioFileReaders = JDK13Services.getProviders(AudioFileReader.class);
         foundAudioFileReaders.stream().forEach(reader -> {
@@ -70,11 +72,10 @@ public class AudioSystemUtils {
     public static AudioInputStream getAudioInputStream(File file)
             throws UnsupportedAudioFileException, IOException {
 
-        List providers = audioFileReaders;
         AudioInputStream audioStream = null;
 
-        for(int i = 0; i < providers.size(); i++ ) {
-            AudioFileReader reader = (AudioFileReader) providers.get(i);
+        for(int i = 0; i < audioFileReaders.size(); i++ ) {
+            AudioFileReader reader = audioFileReaders.get(i);
             try {
                 audioStream = reader.getAudioInputStream( file ); // throws IOException
                 break;

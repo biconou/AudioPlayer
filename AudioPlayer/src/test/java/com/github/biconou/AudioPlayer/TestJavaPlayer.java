@@ -342,6 +342,22 @@ public class TestJavaPlayer {
     }
 
     @Test
+    public void playM4A() throws Exception {
+
+        Player player = initPlayer();
+
+        ArrayListPlayList playList = new ArrayListPlayList();
+        playList.addAudioFile(resourcesBasePath()+"/M4A/example.m4a");
+
+        player.registerListener(new ConsoleLogPlayerListener());
+        player.setPlayList(playList);
+        player.setGain(1);
+        player.play();
+        while (!player.isPlaying());
+        while (player.isPlaying());
+    }
+
+    @Test
     public void playWavHD() throws Exception {
 
         Player player = initPlayer();
