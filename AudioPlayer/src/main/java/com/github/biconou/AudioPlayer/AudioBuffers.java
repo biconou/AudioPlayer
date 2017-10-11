@@ -22,6 +22,7 @@ package com.github.biconou.AudioPlayer;
  * #L%
  */
 
+import com.github.biconou.AudioPlayer.audiostreams.AudioInputStreamUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +54,7 @@ public class AudioBuffers {
     public AudioBuffers(AudioInputStream audioInputStream) {
         this.audioInputStream = audioInputStream;
         this.audioFormat = this.audioInputStream.getFormat();
-        this.bytesPerSecond = (int) audioFormat.getSampleRate() * audioFormat.getFrameSize();
+        this.bytesPerSecond = AudioInputStreamUtils.computeBytesPerSecond(audioInputStream);
 
         log.debug("Number of bytes per second : "+this.bytesPerSecond);
     }
@@ -67,7 +68,7 @@ public class AudioBuffers {
                     try {
                         BufferHolder holder = new BufferHolder();
                         holder.buffer = new byte[bytesPerSecond];
-                        bytes = AudioSystemUtils.readOneSecond(audioInputStream,holder.buffer,bytesPerSecond);
+                        bytes = AudioInputStreamUtils.readOneSecond(audioInputStream,holder.buffer,bytesPerSecond);
                         if (bytes != -1) {
                             holder.bytes = bytes;
                             queue.put(holder);

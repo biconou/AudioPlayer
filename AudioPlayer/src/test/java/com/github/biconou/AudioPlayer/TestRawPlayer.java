@@ -22,6 +22,7 @@ package com.github.biconou.AudioPlayer;
  * #L%
  */
 
+import com.github.biconou.AudioPlayer.audiostreams.AudioInputStreamUtils;
 import com.sun.media.sound.JDK13Services;
 import org.junit.Test;
 
@@ -34,16 +35,12 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.stream.Stream;
 
 /**
  * Created by remi on 05/04/17.
  */
 public class TestRawPlayer {
 
-    private static String resourcesBasePath() {
-        return TestJavaPlayer.class.getResource("/MEDIAS").getPath();
-    }
 
 
     @Test
@@ -89,9 +86,6 @@ public class TestRawPlayer {
     }
 
 
-    private File resolveFile(String fileName) {
-        return new File(resourcesBasePath() + fileName);
-    }
 
     @Test
     public void playAll() throws Exception {
@@ -166,8 +160,8 @@ public class TestRawPlayer {
 
 
     private AudioInputStream prepareAudioInputStream(String fileName) throws Exception {
-        File file = resolveFile(fileName);
-        AudioInputStream audioInputStream = AudioInputStreamUtils.getAudioInputStream(file);
+        File file = TestResourcesUtils.resolveFile(fileName);
+        AudioInputStream audioInputStream = AudioInputStreamUtils.getPCMAudioInputStream(file);
         return audioInputStream;
     }
 
@@ -196,11 +190,11 @@ public class TestRawPlayer {
         int bytesPerSecond = (int) audioFormat.getFrameRate() * audioFormat.getFrameSize();
         System.out.println("bytesPerSecond : " + bytesPerSecond);
         byte[] buffer = new byte[bytesPerSecond];
-        int byteRead = AudioSystemUtils.readOneSecond(audioInputStream, buffer, bytesPerSecond);
+        int byteRead = AudioInputStreamUtils.readOneSecond(audioInputStream, buffer, bytesPerSecond);
         while (byteRead > 0) {
             System.out.println(Thread.currentThread().getName() + "write one buffer to line");
             dataLine.write(buffer, 0, byteRead);
-            byteRead = AudioSystemUtils.readOneSecond(audioInputStream, buffer, bytesPerSecond);
+            byteRead = AudioInputStreamUtils.readOneSecond(audioInputStream, buffer, bytesPerSecond);
         }
     }
 
@@ -229,12 +223,12 @@ public class TestRawPlayer {
         });
 
         byte[] buffer = new byte[bytesPerSecond];
-        int byteRead = AudioSystemUtils.readOneSecond(audioInputStream, buffer, bytesPerSecond);
+        int byteRead = AudioInputStreamUtils.readOneSecond(audioInputStream, buffer, bytesPerSecond);
         while (byteRead > 0) {
             queue.put(buffer);
             System.out.println(Thread.currentThread().getName() + " : " + byteRead + " bytes read, queue size = " + queue.size());
             buffer = new byte[bytesPerSecond];
-            byteRead = AudioSystemUtils.readOneSecond(audioInputStream, buffer, bytesPerSecond);
+            byteRead = AudioInputStreamUtils.readOneSecond(audioInputStream, buffer, bytesPerSecond);
         }
 
         executor.shutdown();
@@ -257,8 +251,6 @@ public class TestRawPlayer {
     }
 
     /**
-     * @param mixerName
-     * @param fileName
      * @throws Exception
      */
     @Test
@@ -276,8 +268,6 @@ public class TestRawPlayer {
     }
 
     /**
-     * @param mixerName
-     * @param fileName
      * @throws Exception
      */
     @Test
@@ -297,8 +287,8 @@ public class TestRawPlayer {
     private void playSingleUsingClip(String mixerName, String fileName) throws Exception {
 
         System.out.println("+++PLAYING+++ = " + fileName);
-        File file = resolveFile(fileName);
-        AudioInputStream audioInputStream = AudioInputStreamUtils.getAudioInputStream(file);
+        File file = TestResourcesUtils.resolveFile(fileName);
+        AudioInputStream audioInputStream = AudioInputStreamUtils.getPCMAudioInputStream(file);
         Mixer mixer = AudioSystemUtils.findMixerByName(mixerName);
 
         AudioFormat audioFormat = audioInputStream.getFormat();
@@ -331,10 +321,10 @@ public class TestRawPlayer {
         String mixerName = "MID [plughw:0,0]";
         Mixer mixer = AudioSystemUtils.findMixerByName(mixerName);
 
-        File file1 = resolveFile("/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 1.flac");
-        AudioInputStream audioInputStream1 = AudioInputStreamUtils.getAudioInputStream(file1);
-        File file2 = resolveFile("/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 2.flac");
-        AudioInputStream audioInputStream2 = AudioInputStreamUtils.getAudioInputStream(file2);
+        File file1 = TestResourcesUtils.resolveFile("/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 1.flac");
+        AudioInputStream audioInputStream1 = AudioInputStreamUtils.getPCMAudioInputStream(file1);
+        File file2 = TestResourcesUtils.resolveFile("/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 2.flac");
+        AudioInputStream audioInputStream2 = AudioInputStreamUtils.getPCMAudioInputStream(file2);
 
 
         AudioFormat audioFormat = audioInputStream1.getFormat();
@@ -375,11 +365,10 @@ public class TestRawPlayer {
     @Test
     public void playSingleUsingAudioBuffers() throws Exception {
 
-        File file;
+        File file = TestResourcesUtils.resolveFile("/count/count.mp3");
         AudioInputStream audioInputStream;
 
-        file = new File(resourcesBasePath() + "/count/count.mp3");
-        audioInputStream = AudioSystemUtils.getAudioInputStream(file);
+        audioInputStream = AudioInputStreamUtils.getAudioInputStream(file);
         AudioFormat audioFormat = audioInputStream.getFormat();
 
         // Choose a mixer
@@ -422,7 +411,7 @@ public class TestRawPlayer {
 
     private void skip(int seconds, AudioInputStream stream, byte[] buffer, int bytesPerSecond) throws IOException {
         for (int i = 0; i < seconds; i++) {
-            AudioSystemUtils.readOneSecond(stream, buffer, bytesPerSecond);
+            AudioInputStreamUtils.readOneSecond(stream, buffer, bytesPerSecond);
         }
     }
 

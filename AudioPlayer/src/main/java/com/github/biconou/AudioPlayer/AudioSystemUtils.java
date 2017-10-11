@@ -30,10 +30,7 @@ import javazoom.spi.mpeg.sampled.file.MpegAudioFileReader;
 import javazoom.spi.vorbis.sampled.file.VorbisAudioFileReader;
 import org.jflac.sound.spi.FlacAudioFileReader;
 
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Mixer;
-import javax.sound.sampled.UnsupportedAudioFileException;
+import javax.sound.sampled.*;
 import javax.sound.sampled.spi.AudioFileReader;
 import java.io.File;
 import java.io.IOException;
@@ -47,48 +44,6 @@ import java.util.function.Predicate;
  */
 public class AudioSystemUtils {
 
-    private static List<AudioFileReader> audioFileReaders;
-
-    static {
-
-        audioFileReaders = new ArrayList<AudioFileReader>();
-        audioFileReaders.add(new WaveFileReader());
-        audioFileReaders.add(new WaveFloatFileReader());
-        audioFileReaders.add(new WaveExtensibleFileReader());
-
-        List foundAudioFileReaders = JDK13Services.getProviders(AudioFileReader.class);
-        foundAudioFileReaders.stream().forEach(reader -> {
-            if (!(reader instanceof WaveFileReader) &&
-                    !(reader instanceof WaveFloatFileReader) &&
-                        !(reader instanceof WaveExtensibleFileReader)) {
-                audioFileReaders.add((AudioFileReader) reader);
-            }
-        });
-    }
-
-
-    public static AudioInputStream getAudioInputStream(File file)
-            throws UnsupportedAudioFileException, IOException {
-
-        List providers = audioFileReaders;
-        AudioInputStream audioStream = null;
-
-        for(int i = 0; i < providers.size(); i++ ) {
-            AudioFileReader reader = (AudioFileReader) providers.get(i);
-            try {
-                audioStream = reader.getAudioInputStream( file ); // throws IOException
-                break;
-            } catch (UnsupportedAudioFileException e) {
-                continue;
-            }
-        }
-
-        if( audioStream==null ) {
-            throw new UnsupportedAudioFileException("could not get audio input stream from input file");
-        } else {
-            return audioStream;
-        }
-    }
 
 
     public static Mixer.Info[] listAllMixers() {
@@ -109,21 +64,5 @@ public class AudioSystemUtils {
     }
 
 
-    public static int readOneSecond(AudioInputStream stream, byte[] buffer, int bytesPerSecond) throws IOException {
-        int bytes;
-        int totalBytesRead = 0;
-        while (totalBytesRead < bytesPerSecond) {
-            bytes = stream.read(buffer, totalBytesRead, bytesPerSecond - totalBytesRead);
-            if (totalBytesRead == 0 && bytes == -1) {
-                return -1;
-            }
-            if (bytes != -1) {
-                totalBytesRead += bytes;
-            } else {
-                return totalBytesRead;
-            }
-        }
-        return totalBytesRead;
-    }
 
 }

@@ -28,6 +28,7 @@ import com.github.biconou.AudioPlayer.api.PlayList;
 import com.github.biconou.AudioPlayer.api.Player;
 import com.github.biconou.AudioPlayer.api.PlayerListener;
 import com.github.biconou.AudioPlayer.api.PlayingInfos;
+import com.github.biconou.AudioPlayer.audiostreams.AudioInputStreamUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -222,7 +223,7 @@ public class JavaPlayer implements Player {
                             pickADataLine(audioStreamToPlay);
                         } catch (LineUnavailableException e) {
                             log.warn("No line available for audio stream with format {}",audioStreamToPlay.getFormat().toString());
-                            log.warn("Try to convert to {}",AudioInputStreamUtils.PCM_SIGNED_44100_16_LE);
+                            log.warn("Try to convert to {}", AudioInputStreamUtils.PCM_SIGNED_44100_16_LE);
                             audioStreamToPlay = AudioSystem.getAudioInputStream(AudioInputStreamUtils.PCM_SIGNED_44100_16_LE,audioStreamToPlay);
                             try {
                                 pickADataLine(audioStreamToPlay);
@@ -335,7 +336,7 @@ public class JavaPlayer implements Player {
         File file = playList.getNextAudioFile();
         if (file != null) {
             log.debug("Picking from play list : file {}.", file.getAbsolutePath());
-            AudioInputStream audioStream = AudioInputStreamUtils.getAudioInputStream(file);
+            AudioInputStream audioStream = AudioInputStreamUtils.getPCMAudioInputStream(file);
             return audioStream;
         } else {
             log.debug("Nothing picked from playlist.");
@@ -347,7 +348,7 @@ public class JavaPlayer implements Player {
         File file = playList.getCurrentAudioFile();
         log.debug("Pick file {} from play list",file.getAbsolutePath());
         if (file != null) {
-            return AudioInputStreamUtils.getAudioInputStream(file);
+            return AudioInputStreamUtils.getPCMAudioInputStream(file);
         } else {
             return null;
         }
