@@ -66,6 +66,7 @@ public class JavaPlayer implements Player {
     private PlayList playList = null;
     private List<PlayerListener> listeners = new ArrayList<PlayerListener>();
     private Boolean mustPause = Boolean.FALSE;
+    private final Object pauseMonitor = new Object();
     private Boolean mustStop = Boolean.FALSE;
     private int pos = -1;
     private AudioFormat previousUsedAudioFormat = null;
@@ -199,7 +200,10 @@ public class JavaPlayer implements Player {
 
         if (isPaused()) {
             log.debug("The player is paused. Try to resume");
-            mustPause = Boolean.FALSE;
+            synchronized (pauseMonitor) {
+                mustPause = Boolean.FALSE;
+                pauseMonitor.notify();
+            }
         } else {
 
             // start a thread that plays the audio streams from the play list.
@@ -243,7 +247,10 @@ public class JavaPlayer implements Player {
                                 okToContinue = false;
                                 doStop();
                             } else if (mustPause) {
-                                state.set(State.PAUSED);
+                                synchronized (pauseMonitor) {
+                                    state.set(State.PAUSED);
+                                    pauseMonitor.wait();
+                                }
                             } else {
                                 if (pos > -1) {
                                     log.debug("Go to position {} seconds",pos);

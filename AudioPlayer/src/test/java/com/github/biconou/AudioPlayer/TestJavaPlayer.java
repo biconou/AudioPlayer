@@ -34,11 +34,6 @@ import java.util.Arrays;
 
 public class TestJavaPlayer {
 
-    private static String resourcesBasePath() {
-        return TestJavaPlayer.class.getResource("/MEDIAS").getPath();
-    }
-
-
 
     @Test
     public void mixer() {
@@ -66,13 +61,13 @@ public class TestJavaPlayer {
         Player player = initPlayer();
 
         ArrayListPlayList playList = new ArrayListPlayList();
-        playList.addAudioFile(resourcesBasePath()+"/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 1.flac");
-        playList.addAudioFile(resourcesBasePath()+"/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 2.flac");
-        playList.addAudioFile(resourcesBasePath()+"/WAV/naim-test-2-wav-24-96000.wav");
-        playList.addAudioFile(resourcesBasePath()+"/WAV/naim-test-2-wav-16-44100.wav");
-        playList.addAudioFile(resourcesBasePath()+"/Music/_DIR_ Céline Frisch- Café Zimmermann - Bach- Goldberg Variations, Canons [Disc 1]/01 - Bach- Goldberg Variations, BWV 988 - Aria.flac");
-        playList.addAudioFile(resourcesBasePath()+"/Music/_DIR_ Sixteen Horsepower/_DIR_ Sackcloth 'n' Ashes/Sixteen Horsepower - 01 I Seen What I Saw.mp3");
-        playList.addAudioFile(resourcesBasePath()+"/Music/_DIR_ Sixteen Horsepower/_DIR_ Sackcloth 'n' Ashes/Sixteen Horsepower - 10 Reed Neck Reel.mp3");
+        playList.addAudioFile(TestUtils.resourcesBasePath()+"/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 1.flac");
+        playList.addAudioFile(TestUtils.resourcesBasePath()+"/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 2.flac");
+        playList.addAudioFile(TestUtils.resourcesBasePath()+"/WAV/naim-test-2-wav-24-96000.wav");
+        playList.addAudioFile(TestUtils.resourcesBasePath()+"/WAV/naim-test-2-wav-16-44100.wav");
+        playList.addAudioFile(TestUtils.resourcesBasePath()+"/Music/_DIR_ Céline Frisch- Café Zimmermann - Bach- Goldberg Variations, Canons [Disc 1]/01 - Bach- Goldberg Variations, BWV 988 - Aria.flac");
+        playList.addAudioFile(TestUtils.resourcesBasePath()+"/Music/_DIR_ Sixteen Horsepower/_DIR_ Sackcloth 'n' Ashes/Sixteen Horsepower - 01 I Seen What I Saw.mp3");
+        playList.addAudioFile(TestUtils.resourcesBasePath()+"/Music/_DIR_ Sixteen Horsepower/_DIR_ Sackcloth 'n' Ashes/Sixteen Horsepower - 10 Reed Neck Reel.mp3");
 
 
 
@@ -103,12 +98,12 @@ public class TestJavaPlayer {
         Player player = initPlayer();
 
         ArrayListPlayList playList1 = new ArrayListPlayList();
-        playList1.addAudioFile(resourcesBasePath()+"/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 1.flac");
-        playList1.addAudioFile(resourcesBasePath()+"/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 2.flac");
+        playList1.addAudioFile(TestUtils.resourcesBasePath()+"/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 1.flac");
+        playList1.addAudioFile(TestUtils.resourcesBasePath()+"/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 2.flac");
 
         ArrayListPlayList playList2 = new ArrayListPlayList();
-        playList2.addAudioFile(resourcesBasePath()+"/WAV/naim-test-2-wav-24-96000.wav");
-        playList2.addAudioFile(resourcesBasePath()+"/WAV/naim-test-2-wav-16-44100.wav");
+        playList2.addAudioFile(TestUtils.resourcesBasePath()+"/WAV/naim-test-2-wav-24-96000.wav");
+        playList2.addAudioFile(TestUtils.resourcesBasePath()+"/WAV/naim-test-2-wav-16-44100.wav");
 
 
         player.setPlayList(playList1);
@@ -137,12 +132,12 @@ public class TestJavaPlayer {
         Player player = initPlayer();
 
         ArrayListPlayList playList1 = new ArrayListPlayList();
-        playList1.addAudioFile(resourcesBasePath()+"/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 1.flac");
-        playList1.addAudioFile(resourcesBasePath()+"/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 2.flac");
+        playList1.addAudioFile(TestUtils.resourcesBasePath()+"/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 1.flac");
+        playList1.addAudioFile(TestUtils.resourcesBasePath()+"/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 2.flac");
 
         ArrayListPlayList playList2 = new ArrayListPlayList();
-        playList2.addAudioFile(resourcesBasePath()+"/WAV/naim-test-2-wav-24-96000.wav");
-        playList2.addAudioFile(resourcesBasePath()+"/WAV/naim-test-2-wav-16-44100.wav");
+        playList2.addAudioFile(TestUtils.resourcesBasePath()+"/WAV/naim-test-2-wav-24-96000.wav");
+        playList2.addAudioFile(TestUtils.resourcesBasePath()+"/WAV/naim-test-2-wav-16-44100.wav");
 
 
         player.setPlayList(playList1);
@@ -166,8 +161,8 @@ public class TestJavaPlayer {
         Player player = initPlayer();
 
         ArrayListPlayList playList = new ArrayListPlayList();
-        playList.addAudioFile(resourcesBasePath()+"/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 2.flac");
-        playList.addAudioFile(resourcesBasePath()+"/WAV/naim-test-2-wav-24-96000.wav");
+        playList.addAudioFile(TestUtils.resourcesBasePath()+"/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 2.flac");
+        playList.addAudioFile(TestUtils.resourcesBasePath()+"/WAV/naim-test-2-wav-24-96000.wav");
 
 
         player.registerListener(new ConsoleLogPlayerListener());
@@ -183,8 +178,8 @@ public class TestJavaPlayer {
         Player player = initPlayer();
 
         ArrayListPlayList arrayListPlayList = new ArrayListPlayList();
-        arrayListPlayList.addAudioFile(resourcesBasePath()+"/Music/_DIR_ Sixteen Horsepower/_DIR_ Sackcloth 'n' Ashes/Sixteen Horsepower - 01 I Seen What I Saw.mp3");
-        arrayListPlayList.addAudioFile(resourcesBasePath()+"/Music/_DIR_ Sixteen Horsepower/_DIR_ Sackcloth 'n' Ashes/Sixteen Horsepower - 10 Reed Neck Reel.mp3");
+        arrayListPlayList.addAudioFile(TestUtils.resourcesBasePath()+"/Music/_DIR_ Sixteen Horsepower/_DIR_ Sackcloth 'n' Ashes/Sixteen Horsepower - 01 I Seen What I Saw.mp3");
+        arrayListPlayList.addAudioFile(TestUtils.resourcesBasePath()+"/Music/_DIR_ Sixteen Horsepower/_DIR_ Sackcloth 'n' Ashes/Sixteen Horsepower - 10 Reed Neck Reel.mp3");
         PlayList playList = arrayListPlayList;
 
         player.setPlayList(playList);
@@ -217,8 +212,8 @@ public class TestJavaPlayer {
         Player player = initPlayer();
 
         ArrayListPlayList arrayListPlayList = new ArrayListPlayList();
-        arrayListPlayList.addAudioFile(resourcesBasePath()+"/Music/_DIR_ Sixteen Horsepower/_DIR_ Sackcloth 'n' Ashes/Sixteen Horsepower - 01 I Seen What I Saw.mp3");
-        arrayListPlayList.addAudioFile(resourcesBasePath()+"/Music/_DIR_ Sixteen Horsepower/_DIR_ Sackcloth 'n' Ashes/Sixteen Horsepower - 10 Reed Neck Reel.mp3");
+        arrayListPlayList.addAudioFile(TestUtils.resourcesBasePath()+"/Music/_DIR_ Sixteen Horsepower/_DIR_ Sackcloth 'n' Ashes/Sixteen Horsepower - 01 I Seen What I Saw.mp3");
+        arrayListPlayList.addAudioFile(TestUtils.resourcesBasePath()+"/Music/_DIR_ Sixteen Horsepower/_DIR_ Sackcloth 'n' Ashes/Sixteen Horsepower - 10 Reed Neck Reel.mp3");
         PlayList playList = arrayListPlayList;
 
         player.setPlayList(playList);
@@ -240,7 +235,7 @@ public class TestJavaPlayer {
         Player player = initPlayer();
 
         ArrayListPlayList playList = new ArrayListPlayList();
-        playList.addAudioFile(resourcesBasePath()+"/Music/_DIR_ Sixteen Horsepower/_DIR_ Sackcloth 'n' Ashes/Sixteen Horsepower - 01 I Seen What I Saw.mp3");
+        playList.addAudioFile(TestUtils.resourcesBasePath()+"/Music/_DIR_ Sixteen Horsepower/_DIR_ Sackcloth 'n' Ashes/Sixteen Horsepower - 01 I Seen What I Saw.mp3");
 
         player.registerListener(new ConsoleLogPlayerListener());
         player.setPlayList(playList);
@@ -260,8 +255,8 @@ public class TestJavaPlayer {
         Player player = initPlayer();
 
         ArrayListPlayList playList = new ArrayListPlayList();
-        playList.addAudioFile(resourcesBasePath()+"/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 1.flac");
-        playList.addAudioFile(resourcesBasePath()+"/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 2.flac");
+        playList.addAudioFile(TestUtils.resourcesBasePath()+"/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 1.flac");
+        playList.addAudioFile(TestUtils.resourcesBasePath()+"/Music2/Heiner Goebbels Surrogate Cities/01 Surrogate Cities part 1 - 2.flac");
 
         player.registerListener(new ConsoleLogPlayerListener());
         player.setPlayList(playList);
@@ -283,7 +278,7 @@ public class TestJavaPlayer {
         Player player = initPlayer();
 
         ArrayListPlayList playList = new ArrayListPlayList();
-        playList.addAudioFile(resourcesBasePath()+"/WAV/naim-test-2-wav-16-44100.wav");
+        playList.addAudioFile(TestUtils.resourcesBasePath()+"/WAV/naim-test-2-wav-16-44100.wav");
 
         player.registerListener(new ConsoleLogPlayerListener());
         player.setPlayList(playList);
@@ -299,7 +294,7 @@ public class TestJavaPlayer {
         Player player = initPlayer();
 
         ArrayListPlayList playList = new ArrayListPlayList();
-        playList.addAudioFile(resourcesBasePath()+"/Music/_DIR_ Céline Frisch- Café Zimmermann - Bach- Goldberg Variations, Canons [Disc 1]/01 - Bach- Goldberg Variations, BWV 988 - Aria.flac");
+        playList.addAudioFile(TestUtils.resourcesBasePath()+"/Music/_DIR_ Céline Frisch- Café Zimmermann - Bach- Goldberg Variations, Canons [Disc 1]/01 - Bach- Goldberg Variations, BWV 988 - Aria.flac");
 
         player.registerListener(new ConsoleLogPlayerListener());
         player.setPlayList(playList);
@@ -315,7 +310,7 @@ public class TestJavaPlayer {
         Player player = initPlayer();
 
         ArrayListPlayList playList = new ArrayListPlayList();
-        playList.addAudioFile(resourcesBasePath()+"/Music/_DIR_ Sixteen Horsepower/_DIR_ Sackcloth 'n' Ashes/Sixteen Horsepower - 01 I Seen What I Saw.mp3");
+        playList.addAudioFile(TestUtils.resourcesBasePath()+"/Music/_DIR_ Sixteen Horsepower/_DIR_ Sackcloth 'n' Ashes/Sixteen Horsepower - 01 I Seen What I Saw.mp3");
 
         player.registerListener(new ConsoleLogPlayerListener());
         player.setPlayList(playList);
@@ -331,7 +326,7 @@ public class TestJavaPlayer {
         Player player = initPlayer();
 
         ArrayListPlayList playList = new ArrayListPlayList();
-        playList.addAudioFile(resourcesBasePath()+"/OGG/01 - Sonata Violin & Cello I. Allegro.ogg");
+        playList.addAudioFile(TestUtils.resourcesBasePath()+"/OGG/01 - Sonata Violin & Cello I. Allegro.ogg");
 
         player.registerListener(new ConsoleLogPlayerListener());
         player.setPlayList(playList);
@@ -347,7 +342,7 @@ public class TestJavaPlayer {
         Player player = initPlayer();
 
         ArrayListPlayList playList = new ArrayListPlayList();
-        playList.addAudioFile(resourcesBasePath()+"/WAV/naim-test-2-wav-24-96000.wav");
+        playList.addAudioFile(TestUtils.resourcesBasePath()+"/WAV/naim-test-2-wav-24-96000.wav");
 
         player.registerListener(new ConsoleLogPlayerListener());
         player.setPlayList(playList);
@@ -363,7 +358,7 @@ public class TestJavaPlayer {
         Player player = initPlayer();
 
         ArrayListPlayList playList = new ArrayListPlayList();
-        playList.addAudioFile(resourcesBasePath()+"/Orfeo/01-01-Toccata-SMR.flac");
+        playList.addAudioFile(TestUtils.resourcesBasePath()+"/Orfeo/01-01-Toccata-SMR.flac");
 
 
         player.registerListener(new ConsoleLogPlayerListener());
@@ -380,7 +375,7 @@ public class TestJavaPlayer {
         Player player = initPlayer();
 
         ArrayListPlayList playList = new ArrayListPlayList();
-        playList.addAudioFile(resourcesBasePath()+"/Music/_DIR_ Sixteen Horsepower/_DIR_ Sackcloth 'n' Ashes/Sixteen Horsepower - 01 I Seen What I Saw.mp3");
+        playList.addAudioFile(TestUtils.resourcesBasePath()+"/Music/_DIR_ Sixteen Horsepower/_DIR_ Sackcloth 'n' Ashes/Sixteen Horsepower - 01 I Seen What I Saw.mp3");
 
         player.registerListener(new ConsoleLogPlayerListener());
         player.setPlayList(playList);
@@ -407,7 +402,7 @@ public class TestJavaPlayer {
 
         ArrayListPlayList playList = new ArrayListPlayList();
         //playList.addAudioFile(resourcesBasePath()+"/Music2/metallica/Fade to Black.mp3");
-        playList.addAudioFile(resourcesBasePath()+"/count/count.mp3");
+        playList.addAudioFile(TestUtils.resourcesBasePath()+"/count/count.mp3");
 
 
         player.registerListener(new ConsoleLogPlayerListener());
