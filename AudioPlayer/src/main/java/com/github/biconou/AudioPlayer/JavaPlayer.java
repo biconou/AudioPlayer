@@ -224,13 +224,13 @@ public class JavaPlayer implements Player {
 
                         try {
                             pickADataLine(audioStreamToPlay);
-                        } catch (LineUnavailableException e) {
+                        } catch (Exception e) {
                             log.warn("No line available for audio stream with format {}",audioStreamToPlay.getFormat().toString());
                             log.warn("Try to convert to {}",AudioInputStreamUtils.PCM_SIGNED_44100_16_LE);
                             audioStreamToPlay = AudioSystem.getAudioInputStream(AudioInputStreamUtils.PCM_SIGNED_44100_16_LE,audioStreamToPlay);
                             try {
                                 pickADataLine(audioStreamToPlay);
-                            } catch (LineUnavailableException e1) {
+                            } catch (Exception e1) {
                                 throw new RuntimeException(e1);
                             }
                         }
@@ -319,7 +319,7 @@ public class JavaPlayer implements Player {
     }
 
 
-    private void pickADataLine(AudioInputStream audioInputStream) throws LineUnavailableException {
+    private void pickADataLine(AudioInputStream audioInputStream) throws Exception {
 
         AudioFormat audioFormat = audioInputStream.getFormat();
 

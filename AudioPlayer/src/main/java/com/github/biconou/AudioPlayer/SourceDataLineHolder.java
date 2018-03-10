@@ -54,7 +54,7 @@ public class SourceDataLineHolder {
         }
     }
 
-    public static SourceDataLineHolder open(Mixer mixer, AudioInputStream audioInputStream, float gain) throws LineUnavailableException {
+    public static SourceDataLineHolder open(Mixer mixer, AudioInputStream audioInputStream, float gain) throws Exception {
 
         SourceDataLineHolder dataLineHolder = null;
         AudioFormat audioFormat = audioInputStream.getFormat();
@@ -74,7 +74,7 @@ public class SourceDataLineHolder {
             dataLine.start();
             dataLineHolder.setGain(gain);
             log.debug("dataline started");
-        } catch (LineUnavailableException e) {
+        } catch (Exception e) {
             if (dataLineHolder != null) {
                 dataLineHolder.close();
             }
