@@ -2,7 +2,7 @@ package com.github.biconou;
 
 /*-
  * #%L
- * AudioPlayer
+ * newaudioplayer
  * %%
  * Copyright (C) 2016 - 2017 Rémi Cocula
  * %%
@@ -22,12 +22,12 @@ package com.github.biconou;
  * #L%
  */
 
-import com.github.biconou.AudioPlayer.ArrayListPlayList;
-import com.github.biconou.AudioPlayer.AudioSystemUtils;
-import com.github.biconou.AudioPlayer.JavaPlayer;
-import com.github.biconou.AudioPlayer.api.PlayList;
-import com.github.biconou.AudioPlayer.api.Player;
-import com.github.biconou.AudioPlayer.api.PlayerListener;
+import com.github.biconou.newaudioplayer.ArrayListPlayList;
+import com.github.biconou.newaudioplayer.AudioSystemUtils;
+import com.github.biconou.newaudioplayer.JavaPlayer;
+import com.github.biconou.newaudioplayer.api.PlayList;
+import com.github.biconou.newaudioplayer.api.Player;
+import com.github.biconou.newaudioplayer.api.PlayerListener;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
